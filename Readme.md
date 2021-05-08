@@ -4,8 +4,8 @@ Aplicativo mobile para tarefas.
 
 ## Tecnologias
 
-- Svelte Native
-- Typescript
+- [Svelte Native](https://svelte-native.technology/) com suporte Typescript;
+- [Native Script](https://docs.nativescript.org/)
 
 ### Instalação
 
@@ -17,7 +17,22 @@ npm install
 yarn
 ```
 
-## Playground e Preview do Native Script:
+## Native Script
+
+Faça o [início rápido do Native Script](https://svelte-native.technology/docs#getting-started) ou por aqui:
+
+```bash
+$ npm install -g nativescript
+```
+
+Verifque com:
+```bash
+$ ns
+# ou
+$ tns
+```
+
+### Playground e Preview do Native Script:
 
 Para executar e depurar seu projeto num dispositivo móvel durante o desenvolvimento instale os apps *Playground* e *Preview* do *Native Script*:
 
