@@ -4,6 +4,7 @@
   <tabs tabsPosition="bottom">
     <tabStrip>
       <tabStripItem title="Pendentes" />
+      <tabStripItem title="Hoje" />
       <tabStripItem title="Concluídas" />
     </tabStrip>
 
@@ -44,6 +45,20 @@
 
     <tabContentItem>
       <listView
+        items="{today}"
+        on:itemTap="{onTodayTap}"
+      >
+        <Template let:item>
+          <label
+            text="{item.name}"
+            textWrap="true"
+          />
+        </Template>
+      </listView>
+    </tabContentItem>
+
+    <tabContentItem>
+      <listView
         items="{dones}"
         on:itemTap="{onDoneTap}"
       >
@@ -80,6 +95,12 @@
   let todos = typeof strTodos === "string" ? JSON.parse(strTodos) : []
   console.log("todos:", todos)
 
+  let salvarToday = false
+  let strToday =appSettings.getString("today")
+  console.log("strToday:", strToday)
+  let today = typeof strToday === "string" ? JSON.parse(strToday) : [] //today items go here
+  console.log("today:", today)
+
   let salvarDones = false
   let strDones =appSettings.getString("dones")
   console.log("strDones:", strDones)
@@ -89,6 +110,11 @@
   $: {
     if (todos && salvarTodos) saveList(todos, "todos")
     salvarTodos = true
+  }
+
+  $: {
+    if (today && salvarToday) saveList(today, "today")
+    salvarToday = true
   }
 
   $: {
@@ -151,15 +177,21 @@
 
     console.log(`Item ${todos[args.index].name} at index: ${args.index} was tapped`);
 
-    let result = await action("O que fazer com essa tarefa?", "Nada", [
+    let item = todos[args.index]
+
+    let result = await action(item.name/*"O que fazer com essa tarefa?""*/, "Nada", [
+      "Para hoje",
       "Concluir",
       "Editar",
       "Apagar"
     ]);
 
     console.log(result); // Logs the selected option for debugging.
-    let item = todos[args.index]
     switch (result) {
+      case "Para hoje":
+        today = addToList(today, item) // Places the tapped active task at the top of the today tasks.
+        todos = removeFromList(todos, item) // Removes the tapped active task.
+        break;
       case "Concluir":
         dones = addToList(dones, item) // Places the tapped active task at the top of the completed tasks.
         todos = removeFromList(todos, item) // Removes the tapped active task.
@@ -178,17 +210,48 @@
     }
   }
 
-  async function onDoneTap(args) {
-    let result = await action("O que fazer com essa tarefa?", "Nada", [
-        "Mover para pendentes",
+  async function onTodayTap(args) {
+    let item = today[args.index]
+    let result = await action(item.name/*"O que fazer com essa tarefa?""*/, "Nada", [
+        "Concluir",
+        "Pendente",
         "Apagar"
     ]);
 
     console.log(result); // Logs the selected option for debugging.
-    let item = dones[args.index]
     switch (result) {
-      case "Mover para pendentes":
-        todos = addToList(todos, item) // Places the tapped active task at the top of the completed tasks.
+      case "Concluir":
+        dones = addToList(dones, item) // Places the tapped active task at the top of the dones tasks.
+        today = removeFromList(today, item) // Removes the tapped active task.
+        break;
+      case "Pendente":
+        todos = addToList(todos, item) // Places the tapped active task at the top of the pendent tasks.
+        today = removeFromList(today, item) // Removes the tapped active task.
+        break;
+      case "Apagar":
+        today = removeFromList(today, item) // Removes the tapped active task.
+        break;
+      case "Nada" || undefined: // Dismisses the dialog
+        break;
+    }
+  }
+
+  async function onDoneTap(args) {
+    let item = dones[args.index]
+    let result = await action(item.name/*"O que fazer com essa tarefa?""*/, "Nada", [
+        "Para hoje",
+        "Pendente",
+        "Apagar"
+    ]);
+
+    console.log(result); // Logs the selected option for debugging.
+    switch (result) {
+      case "Para hoje":
+        today = addToList(today, item) // Places the tapped active task at the top of the today tasks.
+        dones = removeFromList(dones, item) // Removes the tapped active task.
+        break;
+      case "Pendente":
+        todos = addToList(todos, item) // Places the tapped active task at the top of the pendent tasks.
         dones = removeFromList(dones, item) // Removes the tapped active task.
         break;
       case "Apagar":
@@ -210,9 +273,9 @@
   }
 
   function showKeyboard() {
-    if (isAndroid) {
-      utils.ad.showSoftInput(page)
-    }
+    /* (isAndroid) {
+      utils.ad.showSoftInput()
+    }*/
   }
 
   if (application.android) {
