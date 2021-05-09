@@ -40,32 +40,36 @@
   const appSettings = require("tns-core-modules/application-settings");
   console.log("appSettings:", appSettings)
 
+  let salvarTodos = false
   let strTodos = appSettings.getString("todos")
   console.log("strTodos:", strTodos)
   let todos = typeof strTodos === "string" ? JSON.parse(strTodos) : []
   console.log("todos:", todos)
 
+  let salvarDones = false
   let strDones =appSettings.getString("dones")
   console.log("strDones:", strDones)
   let dones = typeof strDones === "string" ? JSON.parse(strDones) : [] //completed items go here
   console.log("dones:", dones)
 
-  /*
-
   $: {
-    saveList(todos, "todos")
+    if (todos && salvarTodos) saveList(todos, "todos")
+    salvarTodos = true
   }
 
   $: {
-    saveList(dones, "todos")
+    if (dones && salvarDones) saveList(dones, "dones")
+    salvarDones = true
   }
-  */
 
   const removeFromList = (list, item) => list.filter(t => t !== item);
 
   const addToList = (list, item) => [item, ...list]
 
-  const saveList = (list, key) => appSettings.setString(key, JSON.stringify(list))
+  const saveList = (list, key) => {
+    appSettings.setString(key, JSON.stringify(list))
+    console.log(`Salvou ${key}`)
+  }
 
   let textFieldValue = ""
 
@@ -76,8 +80,6 @@
 
     todos = [{ name: textFieldValue }, ...todos] // Adds tasks in the ToDo array. Newly added tasks are immediately shown on the screen.
     textFieldValue = ""; // Clears the text field so that users can start adding new tasks immediately.
-
-    saveList(todos, "todos")
   }
 
   async function onItemTap(args) {
@@ -94,13 +96,9 @@
       case "Mover para concluídas":
         dones = addToList(dones, item) // Places the tapped active task at the top of the completed tasks.
         todos = removeFromList(todos, item) // Removes the tapped active task.
-
-        saveList(dones, "dones")
-        saveList(todos, "todos")
         break;
       case "Apagar":
         todos = removeFromList(todos, item) // Removes the tapped active task.
-        saveList(todos, "todos")
         break;
       case "Nada" || undefined: // Dismisses the dialog
         break;
@@ -119,13 +117,9 @@
       case "Mover para pendentes":
         todos = addToList(todos, item) // Places the tapped active task at the top of the completed tasks.
         dones = removeFromList(dones, item) // Removes the tapped active task.
-
-        saveList(dones, "dones")
-        saveList(todos, "todos")
         break;
       case "Apagar":
         dones = removeFromList(dones, item) // Removes the tapped active task.
-        saveList(dones, "dones")
         break;
       case "Nada" || undefined: // Dismisses the dialog
         break;
