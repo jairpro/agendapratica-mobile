@@ -96,16 +96,20 @@
   console.log("todos:", todos)
 
   let salvarToday = false
-  let strToday =appSettings.getString("today")
+  let strToday = appSettings.getString("today")
   console.log("strToday:", strToday)
   let today = typeof strToday === "string" ? JSON.parse(strToday) : [] //today items go here
   console.log("today:", today)
 
   let salvarDones = false
-  let strDones =appSettings.getString("dones")
+  let strDones = appSettings.getString("dones")
   console.log("strDones:", strDones)
   let dones = typeof strDones === "string" ? JSON.parse(strDones) : [] //completed items go here
   console.log("dones:", dones)
+
+  //todos = []
+  //today = []
+  //dones = []
 
   $: {
     if (todos && salvarTodos) saveList(todos, "todos")
@@ -125,6 +129,8 @@
   const removeFromList = (list, item) => list.filter(t => t !== item);
 
   const addToList = (list, item) => [item, ...list]
+
+  const appendToList = (list, item) => [...list, item]
 
   const modifyListItem = (list, index, item) => {
     console.log("modificando o item " + index + ": " + item.name)
@@ -189,7 +195,7 @@
     console.log(result); // Logs the selected option for debugging.
     switch (result) {
       case "Para hoje":
-        today = addToList(today, item) // Places the tapped active task at the top of the today tasks.
+        today = appendToList(today, item) // Places the tapped active task at the top of the today tasks.
         todos = removeFromList(todos, item) // Removes the tapped active task.
         break;
       case "Concluir":
@@ -214,6 +220,7 @@
     let item = today[args.index]
     let result = await action(item.name/*"O que fazer com essa tarefa?""*/, "Nada", [
         "Concluir",
+        "Mover",
         "Pendente",
         "Apagar"
     ]);
@@ -224,6 +231,10 @@
         dones = addToList(dones, item) // Places the tapped active task at the top of the dones tasks.
         today = removeFromList(today, item) // Removes the tapped active task.
         break;
+      case "Mover": {
+        today = await menuMove(today, item, args.index);
+        break;
+      }
       case "Pendente":
         todos = addToList(todos, item) // Places the tapped active task at the top of the pendent tasks.
         today = removeFromList(today, item) // Removes the tapped active task.
@@ -260,6 +271,66 @@
       case "Nada" || undefined: // Dismisses the dialog
         break;
     }
+  }
+
+  function moveList(list, indexSource: number, indexDestiny: number) {
+
+    function array_move(arr1, old_index, new_index) {
+      let arr = JSON.parse(JSON.stringify(arr1))
+      if (new_index >= arr.length) {
+          var k = new_index - arr.length + 1;
+          while (k--) {
+              arr.push(undefined);
+          }
+      }
+      arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
+      return arr; // for testing
+    }
+
+    if (
+      indexDestiny<0 || indexDestiny>list.length-1
+      || indexSource<0 || indexSource>list.length-1
+    ) return list
+
+    /*let item = list[indexSource]
+    list.splice(indexDestiny, 1, item);
+    list = removeFromList(list, list[indexSource])*/
+
+    return array_move(list, indexSource, indexDestiny)
+  }
+
+  async function menuMove(list, item, index) {
+    let result = await action(item.name, "Ok", [
+        "Primeira",
+        "Sobe",
+        "Desce",
+        "Última"
+    ]);
+
+    let more: boolean
+    do {
+      more = false
+      switch (result) {
+        case "Primeira":
+          list = moveList(list, index, 0)
+          break;
+        case "Sobe":
+          //more = true
+          list = moveList(list, index, index-1)
+          break;
+        case "Desce":
+          //more = true
+          list = moveList(list, index, index+1)
+          break;
+        case "Última":
+          list = moveList(list, index, today.length-1)
+          break;
+        case "Ok" || undefined: // Dismisses the dialog
+          break;
+      }
+    } while (more)
+
+    return list
   }
 
   function hideKeyboard() {
