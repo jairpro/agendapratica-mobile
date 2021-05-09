@@ -1,5 +1,5 @@
 <page>
-  <actionBar title="Minhas Tarefas" />
+  <actionBar title="Minhas Tarefas"  />
 
   <tabs tabsPosition="bottom">
     <tabStrip>
@@ -8,15 +8,33 @@
     </tabStrip>
 
     <tabContentItem>
-      <gridLayout columns="*,120" rows="70,*">
+      <gridLayout
+        columns="*,120"
+        rows="70,*"
+      >
         <!-- Configura o campo de texto e garante que pressionar Return no teclado
            produz o mesmo resultado que tocar no botão. -->
-        <textField col="0" row="0" bind:text="{textFieldValue}" hint="Digite uma nova tarefa..." editable="true"
-          on:returnPress="{onButtonTap}" />
+        <textField
+          col="0" row="0"
+          bind:text="{textFieldValue}"
+          hint="Digite uma nova tarefa..."
+          editable="true"
+          on:returnPress="{onButtonTap}"
+        />
 
-        <button col="1" row="0" text="Adicionar" on:tap="{onButtonTap}" class="-primary" />
+        <button
+          col="1" row="0"
+          text="{buttonText}"
+          on:tap="{onButtonTap}"
+          class="-primary"
+        />
 
-        <listView items="{todos}" on:itemTap="{onItemTap}" row="1" colSpan="2">
+        <listView
+          items="{todos}"
+          on:itemTap="{onItemTap}"
+          row="1"
+          colSpan="2"
+        >
           <Template let:item>
             <label text="{item.name}" textWrap="true" />
           </Template>
@@ -25,17 +43,33 @@
     </tabContentItem>
 
     <tabContentItem>
-      <listView items="{dones}" on:itemTap="{onDoneTap}">
+      <listView
+        items="{dones}"
+        on:itemTap="{onDoneTap}"
+      >
         <Template let:item>
-          <label text="{item.name}" class="todo-item-completed" textWrap="true" />
+          <label
+            text="{item.name}"
+            class="todo-item-completed"
+            textWrap="true"
+          />
         </Template>
       </listView>
     </tabContentItem>
   </tabs>
 </page>
 
-<script>
+<script lang="typescript">
   import { Template } from 'svelte-native/components'
+  import * as utils from "tns-core-modules/utils/utils";
+  import {
+    isAndroid,
+    //isIOS,
+  } from "tns-core-modules/platform";
+  //import { frame } from "tns-core-modules/ui/frame";
+  import * as application from "tns-core-modules/application";
+  import { AndroidApplication, AndroidActivityBackPressedEventData } from "tns-core-modules/application";
+
 
   const appSettings = require("tns-core-modules/application-settings");
   console.log("appSettings:", appSettings)
@@ -66,6 +100,11 @@
 
   const addToList = (list, item) => [item, ...list]
 
+  const modifyListItem = (list, index, item) => {
+    console.log("modificando o item " + index + ": " + item.name)
+    list[index] = {name: item.name}
+  }
+
   const saveList = (list, key) => {
     appSettings.setString(key, JSON.stringify(list))
     console.log(`Salvou ${key}`)
@@ -73,30 +112,64 @@
 
   let textFieldValue = ""
 
+  let todoIndex = -1
+  let isEditing = false
+
+  $: buttonText = isEditing ? 'Modificar' : 'Adicionar'
+
+  $: {
+    textFieldValue = (isEditing && todoIndex > -1) ? todos[todoIndex].name : ""
+  }
+
   function onButtonTap() {
     if (textFieldValue === "") return; // Prevents users from entering an empty string.
 
-    console.log("New task added: " + textFieldValue + "."); // Logs the newly added task in the console for debugging.
+    if (isEditing) {
+      console.log("Tarefa \"" + todos[todoIndex].name + "\" modificada para: \"" + textFieldValue + "\".") // Logs the newly added task in the console for debugging.
+      modifyListItem(todos, todoIndex,  {name: textFieldValue})
+      isEditing = false
+      hideKeyboard()
+    }
+    else {
+      console.log("Nova tarefa adicionada: " + textFieldValue + ".") // Logs the newly added task in the console for debugging.
+      todos = [{ name: textFieldValue }, ...todos] // Adds tasks in the ToDo array. Newly added tasks are immediately shown on the screen.
+    }
 
-    todos = [{ name: textFieldValue }, ...todos] // Adds tasks in the ToDo array. Newly added tasks are immediately shown on the screen.
     textFieldValue = ""; // Clears the text field so that users can start adding new tasks immediately.
   }
 
   async function onItemTap(args) {
+    if (isEditing) {
+      modifyListItem(todos, todoIndex,  {name: textFieldValue})
+      hideKeyboard()
+    }
+    todoIndex = args.index
+    if (isEditing) {
+      showKeyboard()
+      return
+    }
+
     console.log(`Item ${todos[args.index].name} at index: ${args.index} was tapped`);
 
     let result = await action("O que fazer com essa tarefa?", "Nada", [
-      "Mover para concluídas",
+      "Concluir",
+      "Editar",
       "Apagar"
     ]);
 
     console.log(result); // Logs the selected option for debugging.
     let item = todos[args.index]
     switch (result) {
-      case "Mover para concluídas":
+      case "Concluir":
         dones = addToList(dones, item) // Places the tapped active task at the top of the completed tasks.
         todos = removeFromList(todos, item) // Removes the tapped active task.
         break;
+      case "Editar": {
+        textFieldValue = item.name
+        isEditing = true
+        showKeyboard()
+        break;
+      }
       case "Apagar":
         todos = removeFromList(todos, item) // Removes the tapped active task.
         break;
@@ -125,6 +198,35 @@
         break;
     }
   }
+
+  function hideKeyboard() {
+    // https://stackoverflow.com/a/60269199/12769114
+    if (isAndroid) {
+      utils.ad.dismissSoftInput()
+    }
+    /*if (isIOS) {
+      frame.topmost().nativeView.endEditing(true);
+    }*/
+  }
+
+  function showKeyboard() {
+    if (isAndroid) {
+      utils.ad.showSoftInput(page)
+    }
+  }
+
+  if (application.android) {
+    application.android.on(
+      AndroidApplication.activityBackPressedEvent,
+      (data: AndroidActivityBackPressedEventData) => {
+        if (isEditing) {
+          data.cancel = true; // prevents default back button behavior
+          isEditing = false;
+        }
+      }
+    )
+  }
+
 </script>
 
 <style>
