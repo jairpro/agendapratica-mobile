@@ -135,6 +135,7 @@
   const modifyListItem = (list, index, item) => {
     console.log("modificando o item " + index + ": " + item.name)
     list[index] = {name: item.name}
+    return JSON.parse(JSON.stringify(list))
   }
 
   const saveList = (list, key) => {
@@ -149,8 +150,10 @@
 
   $: buttonText = isEditing ? 'Modificar' : 'Adicionar'
 
+  let todoName = ""
+
   $: {
-    textFieldValue = (isEditing && todoIndex > -1) ? todos[todoIndex].name : ""
+    textFieldValue = (isEditing && todoIndex > -1) ? todoName : ""
   }
 
   function onButtonTap() {
@@ -158,7 +161,7 @@
 
     if (isEditing) {
       console.log("Tarefa \"" + todos[todoIndex].name + "\" modificada para: \"" + textFieldValue + "\".") // Logs the newly added task in the console for debugging.
-      modifyListItem(todos, todoIndex,  {name: textFieldValue})
+      todos = modifyListItem(todos, todoIndex,  {name: textFieldValue})
       isEditing = false
       hideKeyboard()
     }
@@ -172,9 +175,10 @@
 
   async function onItemTap(args) {
     if (isEditing) {
-      modifyListItem(todos, todoIndex,  {name: textFieldValue})
+      todos = modifyListItem(todos, todoIndex,  {name: textFieldValue})
       hideKeyboard()
     }
+    todoName = todos[args.index].name
     todoIndex = args.index
     if (isEditing) {
       showKeyboard()
