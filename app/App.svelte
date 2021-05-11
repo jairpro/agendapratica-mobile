@@ -1,7 +1,7 @@
 <page>
   <actionBar title="Minhas Tarefas"  />
 
-  <tabs tabsPosition="bottom">
+  <tabs tabsPosition="bottom" selectedIndex={initialTabIndex}>
     <tabStrip>
       <tabStripItem title="Pendentes" />
       <tabStripItem title="Hoje" />
@@ -106,6 +106,8 @@
   console.log("strDones:", strDones)
   let dones = typeof strDones === "string" ? JSON.parse(strDones) : [] //completed items go here
   console.log("dones:", dones)
+
+  let initialTabIndex = Number(today.length>0)
 
   //todos = []
   //today = []
