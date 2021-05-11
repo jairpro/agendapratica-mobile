@@ -262,7 +262,7 @@
     console.log(result); // Logs the selected option for debugging.
     switch (result) {
       case "Para hoje":
-        today = addToList(today, item) // Places the tapped active task at the top of the today tasks.
+        today = appendToList(today, item) // Places the tapped active task at the top of the today tasks.
         dones = removeFromList(dones, item) // Removes the tapped active task.
         break;
       case "Pendente":
