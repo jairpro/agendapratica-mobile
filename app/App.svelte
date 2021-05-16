@@ -1,17 +1,26 @@
 <script lang="typescript">
-  import { Template } from 'svelte-native/components'
-  import * as utils from "tns-core-modules/utils/utils";
-  import {
-    isAndroid,
-    //isIOS,
-  } from "tns-core-modules/platform";
-  //import { frame } from "tns-core-modules/ui/frame";
   import * as application from "tns-core-modules/application";
-  import { AndroidApplication, AndroidActivityBackPressedEventData } from "tns-core-modules/application";
-import { itemHeightProperty } from '@nativescript/core/ui/layouts/wrap-layout';
-import { element } from 'svelte/internal';
-  //import { TouchGestureEventData } from '@nativescript/core';
+  import {
+    AndroidApplication,
+    AndroidActivityBackPressedEventData
+  } from "tns-core-modules/application";
+  import { Template } from 'svelte-native/components'
 
+  import {
+    addToList,
+    getItemIndex,
+    List,
+    ListItem,
+    modifyListItem,
+    moveList,
+    moveTaskToList,
+    reactList,
+    removeFromList,
+    saveList
+  } from './utils/lists'
+
+  import { hideKeyboard, showKeyboard } from './utils/os';
+  
   const appSettings = require("tns-core-modules/application-settings");
 
   let strTodos = appSettings.getString("todos")
@@ -90,108 +99,6 @@ import { element } from 'svelte/internal';
     salvarDones = true
   }
 
-  type RemoveFromListData = {
-    list: List
-    index?: number
-    item?: ListItem
-    level?: number
-  }
-
-  function removeFromList(data: RemoveFromListData): List {
-    const {list, index, level, item} = data
-
-    if (level > -1) {
-      list[level].subdivisions = removeFromList({
-        list: list[level].subdivisions,
-        index,
-        item,
-      })
-      return reactList(list)
-    }
-
-    return list.filter((element, ind) =>
-      item!==undefined && element !== item
-      || index!==undefined && index !== ind
-    )
-  }
-
-  type ListItem = {
-    name: string
-    subdivisions?: List
-  }
-
-  type List = ListItem[]
-
-  type AddToListData = {
-    list: List
-    item: ListItem
-    level?: number
-  }
-
-  const addToList = (data: AddToListData): List => {
-    const { item, level, list } = data
-
-    if (level > -1) {
-      list[level].subdivisions = [item, ...list[level].subdivisions]
-      return JSON.parse(JSON.stringify(list))
-    }
-
-    return [item, ...list]
-  }
-
-  type AppendToListData = {
-    list: List
-    item?: ListItem
-    index?: number
-    level?: number
-  }
-
-  function appendToList(data: AppendToListData): List {
-    const { list, index, level } = data
-    let { item } = data
-
-    if (level > -1) {
-      if (!item) {
-        item = list[level].subdivisions[index]
-      }
-
-      if (item) {
-        list[level].subdivisions = [...list[level].subdivisions, item]
-        return JSON.parse(JSON.stringify(list))
-      }
-    }
-    else {
-      if (!item) item = list[index]
-      if (item) return [...list, item]
-    }
-    return list
-  }
-
-  type ModifyListItemData = {
-    list: List
-    index: number
-    name: string
-    level?: number
-  }
-
-  const modifyListItem = (data: ModifyListItemData) => {
-    const { list, index, name, level } = data
-
-    if (level > -1) {
-      list[level].subdivisions[index].name = name
-    }
-    else {
-      list[index].name = name
-    }
-
-    return JSON.parse(JSON.stringify(list))
-  }
-
-  function saveList(list, key) {
-    appSettings.setString(key, JSON.stringify(list))
-    console.log(`Salvou ${key}`)
-  }
-
   let textFieldValue = ""
 
   let isEditing = false
@@ -206,6 +113,22 @@ import { element } from 'svelte/internal';
 
   let isMoving = false
   let todoLongPress = false
+
+  let defaultTitle = "Minhas Tarefas"
+  let title = defaultTitle
+
+  $: titleTodos = todoLevel > -1 ? todos[todoLevel].name : defaultTitle
+  $: titleToday = todayLevel > -1 ? today[todayLevel].name : defaultTitle
+  $: titleDones = doneLevel > -1 ? dones[doneLevel].name : defaultTitle
+
+  $: switch (tabIndex) {
+    case 0: title = titleTodos; break
+    case 1: title = titleToday; break
+    case 2: title = titleDones; break
+  }
+
+  //on:itemTap="{onTodoItemTap}"
+  //on:longPress="{onTodoLongPress}"
 
   function onButtonTap() {
     if (textFieldValue === "") return; // Prevents users from entering an empty string.
@@ -234,114 +157,6 @@ import { element } from 'svelte/internal';
     }
 
     textFieldValue = ""; // Clears the text field so that users can start adding new tasks immediately.
-  }
-
-  function reactList(list: List): List {
-    return JSON.parse(JSON.stringify(list))
-  }
-
-  type NewTopItemData = {
-    from: List
-    to: List
-    level: number
-    index: number
-  }
-
-  function newTopItem(data: NewTopItemData): ListItem {
-    const { from, to, level, index } = data
-
-    if (level > -1) {
-      const name = from[level].name
-      const subdivision = from[level].subdivisions[index]
-
-      const found = to.find(element => element.name === name)
-      if (!found) {
-        return {
-          name,
-          subdivisions: [subdivision]
-        }
-      }
-    }
-    return null
-  }
-
-  type MoveTaskToListData = {
-    from: List
-    to: List
-    level: number
-    index: number
-    append: boolean
-    onMove: (toAfter: List) => void
-    onRemove: (fromAfter: List) => void
-  }
-
-  function moveTaskToList(data: MoveTaskToListData) {
-    const { from, level, to, index, append, onMove, onRemove } = data
-
-    let toAfter: List
-    let item: any
-
-    if (level > -1) {
-      item = from[level].subdivisions[index]
-      const topName = from[level].name
-      const found = to.find(element => element.name === topName)
-
-      if (found) {
-        found.subdivisions = append
-          ? [...found.subdivisions, item]
-          : [item, ...found.subdivisions]
-        toAfter = reactList(to)
-        item = false
-      }
-      else {
-        item = newTopItem({
-          from,
-          to,
-          level,
-          index,
-        })
-      }
-    }
-    else {
-      item = from[index]
-      const topName = from[index].name
-      const found = to.find(element => element.name === topName)
-
-      if (found && item.subdivisions) {
-        found.subdivisions = append
-          ? [...found.subdivisions, ...from[index].subdivisions]
-          : [...from[index].subdivisions, ...found.subdivisions]
-        toAfter = reactList(to)
-        item = false
-      }
-    }
-    if (item) {
-      toAfter = append
-        ? appendToList({ list: to, item })
-        : addToList({ list: to, item })
-    }
-
-    if (onMove && toAfter.length>0) {
-      onMove(toAfter)
-
-      if (onRemove) {
-        let fromAfter = removeFromList({
-          list: from,
-          index,
-          level,
-        })
-
-        if (level > -1 && from[level].subdivisions.length === 0) {
-          fromAfter = removeFromList({
-            list: from,
-            index: level,
-          })
-          goBack()
-        }
-
-        onRemove(fromAfter)
-      }
-    }
   }
 
   async function todoMenu(args) {
@@ -387,7 +202,8 @@ import { element } from 'svelte/internal';
           onRemove: fromAfter => {
             todos = fromAfter
             saveTodos()
-          }
+          },
+          onGoBack: () => goBack(),
         })
         break;
 
@@ -402,7 +218,8 @@ import { element } from 'svelte/internal';
           onRemove: fromAfter => {
             todos = fromAfter
             saveTodos()
-          }
+          },
+          onGoBack: () => goBack(),
         })
 
         break;
@@ -435,17 +252,6 @@ import { element } from 'svelte/internal';
       case "Nada" || undefined: // Dismisses the dialog
         break;
     }
-  }
-
-  function getItemIndex(list: List, item: ListItem): number {
-    let index = -1
-    for (let element of list) {
-      index++
-      if (item.name === element.name) {
-        break
-      }
-    }
-    return index
   }
 
   function openTodoSubdivisions(item?: ListItem) {
@@ -511,17 +317,16 @@ import { element } from 'svelte/internal';
     //await todoMenu(args)
   }*/
 
-  /*function renderToday() {
+  function renderToday() {
     salvarToday = false
-    today = JSON.parse(JSON.stringify(today))
+    today = reactList(today)
     salvarToday = true
-  }*/
+  }
 
   async function onTodayTap(args) {
     todayIndex = args.index
-    //renderToday()
 
-    if (isMoving) return
+    if (isMoving) return renderToday()
 
     let menu = []
     menu.push("Concluir")
@@ -543,7 +348,8 @@ import { element } from 'svelte/internal';
           to: dones,
           append: false,
           onMove: toAfter => dones = toAfter,
-          onRemove: fromAfter => today = fromAfter
+          onRemove: fromAfter => today = fromAfter,
+          onGoBack: () => goBack(),
         })
         break;
       case "Mover": {
@@ -562,6 +368,7 @@ import { element } from 'svelte/internal';
             saveTodos()
           },
           onRemove: fromAfter => today = fromAfter,
+          onGoBack: () => goBack(),
         })
 
         break;
@@ -593,7 +400,8 @@ import { element } from 'svelte/internal';
           to: today,
           append: true,
           onMove: toAfter => today = toAfter,
-          onRemove: fromAfter => dones = fromAfter
+          onRemove: fromAfter => dones = fromAfter,
+          onGoBack: () => goBack(),
         })
         break;
       case "Pendente":
@@ -607,7 +415,8 @@ import { element } from 'svelte/internal';
             todos = toAfter
             saveTodos()
           },
-          onRemove: fromAfter => dones = fromAfter
+          onRemove: fromAfter => dones = fromAfter,
+          onGoBack: () => goBack(),
         })
         break;
       case "Apagar":
@@ -616,34 +425,6 @@ import { element } from 'svelte/internal';
       case "Nada" || undefined: // Dismisses the dialog
         break;
     }
-  }
-
-  function array_move(arr1: any[], old_index: number, new_index: number): any[] {
-    let arr = JSON.parse(JSON.stringify(arr1))
-    if (new_index >= arr.length) {
-        var k = new_index - arr.length + 1;
-        while (k--) {
-            arr.push(undefined);
-        }
-    }
-    arr.splice(new_index, 0, arr.splice(old_index, 1)[0]);
-    return arr; // for testing
-  }
-
-  function moveList(list: List, indexSource: number, indexDestiny: number, level: number): List {
-    const temp = level > -1 ? list[level].subdivisions : list
-    if (
-      indexDestiny<0 || indexDestiny>temp.length-1
-      || indexSource<0 || indexSource>temp.length-1
-    ) return list
-
-    const result = array_move(temp, indexSource, indexDestiny)
-
-    if (level > -1) {
-      list[level].subdivisions = result
-      return reactList(list)
-    }
-    return result
   }
 
   function moveTop() {
@@ -678,22 +459,6 @@ import { element } from 'svelte/internal';
     today = moveList(today, index, todayIndex, todayLevel)
   }
 
-  function hideKeyboard() {
-    // https://stackoverflow.com/a/60269199/12769114
-    if (isAndroid) {
-      utils.ad.dismissSoftInput()
-    }
-    /*if (isIOS) {
-      frame.topmost().nativeView.endEditing(true);
-    }*/
-  }
-
-  function showKeyboard() {
-    /* (isAndroid) {
-      utils.ad.showSoftInput()
-    }*/
-  }
-
   if (application.android) {
     application.android.on(
       AndroidApplication.activityBackPressedEvent,
@@ -709,21 +474,6 @@ import { element } from 'svelte/internal';
     tabIndex = tabs.selectedIndex
   }
 
-  let defaultTitle = "Minhas Tarefas"
-  let title = defaultTitle
-
-  $: titleTodos = todoLevel > -1 ? todos[todoLevel].name : defaultTitle
-  $: titleToday = todayLevel > -1 ? today[todayLevel].name : defaultTitle
-  $: titleDones = doneLevel > -1 ? dones[doneLevel].name : defaultTitle
-
-  $: switch (tabIndex) {
-    case 0: title = titleTodos; break
-    case 1: title = titleToday; break
-    case 2: title = titleDones; break
-  }
-
-  //on:itemTap="{onTodoItemTap}"
-  //on:longPress="{onTodoLongPress}"
   function goBack() {
     if (tabIndex === 0 && isEditing) {
       isEditing = false;
@@ -990,13 +740,10 @@ import { element } from 'svelte/internal';
 
   .selected-move {
     font-weight: bold;
-    /*background: #3c495e;*/
-    /*color: #fff;*/
     color: #3c495e;
   }
 
   .selected-normal {
-    /*font-weight: bold;*/
   }
 
   .button-abrir {
