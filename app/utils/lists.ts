@@ -117,7 +117,7 @@ export function removeFromList(data: RemoveFromListData): List {
   )
 }
 
-export function saveList(list, key) {
+export function saveList(list: List, key: string) {
   appSettings.setString(key, JSON.stringify(list))
   console.log(`Salvou ${key}`)
 }

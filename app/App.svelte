@@ -20,7 +20,8 @@
   } from './utils/lists'
 
   import { hideKeyboard, showKeyboard } from './utils/os';
-  
+import { element } from "svelte/internal";
+
   const appSettings = require("tns-core-modules/application-settings");
 
   let strTodos = appSettings.getString("todos")
@@ -159,6 +160,76 @@
     textFieldValue = ""; // Clears the text field so that users can start adding new tasks immediately.
   }
 
+  async function todoMenuMoverPara(item: ListItem) {
+    const menu = []
+    if (todoLevel > -1) menu.push("⤴ Pasta raiz")
+    todos.map((element: ListItem) => element.subdivisions && menu.push(element.name))
+
+    let result = await action('Mover para:', "Nenhum", menu);
+
+    switch (result) {
+      case "⤴ Pasta raiz":
+        todos = [item, ...todos]
+
+        console.log('todoLevels antes:', JSON.stringify(todoLevels))
+        todoLevel++
+        todoLevels[1]++
+        console.log('todoLevels depois:', JSON.stringify(todoLevels))
+
+        todos = removeFromList({
+          list: todos,
+          index: todoIndex,
+          level: todoLevel,
+        })
+
+        saveTodos()
+
+        break
+
+      case "Nada" || undefined: // Dismisses the dialog
+        break;
+
+      default:
+        const found = todos.find((element: ListItem) => element.name === result)
+        if (!found) return
+
+        const foundIndex = getItemIndex(todos, found)
+        if (foundIndex < 0) return
+
+        if (todoLevel < 0) {
+          todos = addToList({
+            list: todos,
+            item,
+            level: foundIndex
+          })
+
+          todos = removeFromList({
+            list: todos,
+            index: todoIndex,
+          })
+
+          saveTodos()
+        }
+        else {
+          todos = addToList({
+            list: todos,
+            item: item,
+            level: foundIndex
+          })
+
+          todos = removeFromList({
+            list: todos,
+            index: todoIndex,
+            level: todoLevel,
+          })
+
+          saveTodos()
+        }
+
+        break
+    }
+  }
+
   async function todoMenu(args) {
     if (isEditing) {
       todos = modifyListItem({
@@ -183,8 +254,16 @@
     menu.push("Para hoje")
     menu.push("Concluir")
     menu.push("Editar")
-    if (todoLevel<0 && !listTodos[todoIndex].subdivisions) {
-      menu.push("Subdividir")
+    if (todoLevel<0) {
+      if (!listTodos[todoIndex].subdivisions) {
+        menu.push("Subdividir")
+      }
+      else if (listTodos[todoIndex].subdivisions.length === 0) {
+        menu.push("Unificar")
+      }
+    }
+    if (!listTodos[todoIndex].subdivisions) {
+      menu.push("Mover para...")
     }
     menu.push("Apagar")
 
@@ -249,6 +328,18 @@
         todoIndex = -1
 
         break;
+
+      case "Mover para...":
+        await todoMenuMoverPara(item)
+        break
+
+      case "Unificar":
+        if (todoLevel > -1) return
+        todos[todoIndex].subdivisions = undefined
+        saveTodos()
+
+        break
+
       case "Nada" || undefined: // Dismisses the dialog
         break;
     }
@@ -257,24 +348,24 @@
   function openTodoSubdivisions(item?: ListItem) {
     if (item !== undefined) todoIndex = getItemIndex(listTodos, item)
     if (todoIndex < 0) return
-    todoLevels.push(todoLevel)
     todoLevel = todoIndex
+    todoLevels.push(todoLevel)
     todoIndex = -1
   }
 
   function openTodaySubdivisions(item?: ListItem) {
     if (item !== undefined) todayIndex = getItemIndex(listToday, item)
     if (todayIndex < 0) return
-    todayLevels.push(todayLevel)
     todayLevel = todayIndex
+    todayLevels.push(todayLevel)
     todayIndex = -1
   }
 
   function openDoneSubdivisions(item?: ListItem) {
     if (item !== undefined) doneIndex = getItemIndex(listDones, item)
     if (doneIndex < 0) return
-    doneLevels.push(doneLevel)
     doneLevel = doneIndex
+    doneLevels.push(doneLevel)
     doneIndex = -1
   }
 
