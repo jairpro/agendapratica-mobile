@@ -8,6 +8,8 @@
   //import { frame } from "tns-core-modules/ui/frame";
   import * as application from "tns-core-modules/application";
   import { AndroidApplication, AndroidActivityBackPressedEventData } from "tns-core-modules/application";
+import { itemHeightProperty } from '@nativescript/core/ui/layouts/wrap-layout';
+import { element } from 'svelte/internal';
   //import { TouchGestureEventData } from '@nativescript/core';
 
   const appSettings = require("tns-core-modules/application-settings");
@@ -43,6 +45,13 @@
   let todoLevels = [-1]
   let todayLevels = [-1]
   let doneLevels = [-1]
+
+  let todoGroups = []
+
+  $: {
+    todoGroups = []
+    todos.map((item: ListItem) => item.subdivisions && todoGroups.push(item))
+  }
 
   function saveTodos() {
     saveList(todos, "todos")
@@ -356,9 +365,6 @@
     let item = listTodos[args.index]
 
     let menu = []
-    if (item.subdivisions) {
-      menu.push("Abrir")
-    }
     menu.push("Para hoje")
     menu.push("Concluir")
     menu.push("Editar")
@@ -370,66 +376,7 @@
     let result = await action(item.name, "Nada", menu);
 
     switch (result) {
-      case "Abrir":
-        openTodoSubdivisions()
-        break
       case "Para hoje":
-        /*
-        let remove = false
-
-        if (todoLevel > -1) {
-          const topName = todos[todoLevel].name
-          const found = today.find(element => element.name === topName)
-
-          if (found) {
-            found.subdivisions = [...found.subdivisions, item]
-            today = reactList(today)
-            remove = true
-            item = false
-          }
-          else {
-            item = newTopItem({
-              from: todos,
-              to: today,
-              level: todoLevel,
-              index: todoIndex,
-            })
-          }
-        }
-        else {
-          const topName = todos[todoIndex].name
-          const found = today.find(element => element.name === topName)
-
-          if (found && item.subdivisions) {
-            found.subdivisions = [...found.subdivisions, ...todos[todoIndex].subdivisions]
-            today = reactList(today)
-            remove = true
-            item = false
-          }
-        }
-        if (item) {
-          today = appendToList({ list: today, item })
-          remove = true
-        }
-
-        if (remove) {
-          todos = removeFromList({
-            list: todos,
-            index: todoIndex,
-            level: todoLevel,
-          })
-
-          if (todoLevel > -1 && todos[todoLevel].subdivisions.length === 0) {
-            todos = removeFromList({
-              list: todos,
-              index: todoLevel,
-            })
-            goBack()
-          }
-
-          saveTodos()
-        }
-        */
         moveTaskToList({
           from: todos,
           level: todoLevel,
@@ -445,20 +392,6 @@
         break;
 
       case "Concluir":
-        /*
-        dones = addToList({
-          list: dones,
-          item
-        })
-
-        todos = removeFromList({
-          list: todos,
-          index: todoIndex,
-          level: todoLevel,
-        }) // Removes the tapped active task.
-
-        saveTodos()
-        */
         moveTaskToList({
           from: todos,
           level: todoLevel,
@@ -504,19 +437,36 @@
     }
   }
 
-  function openTodoSubdivisions() {
+  function getItemIndex(list: List, item: ListItem): number {
+    let index = -1
+    for (let element of list) {
+      index++
+      if (item.name === element.name) {
+        break
+      }
+    }
+    return index
+  }
+
+  function openTodoSubdivisions(item?: ListItem) {
+    if (item !== undefined) todoIndex = getItemIndex(listTodos, item)
+    if (todoIndex < 0) return
     todoLevels.push(todoLevel)
     todoLevel = todoIndex
     todoIndex = -1
   }
 
-  function openTodaySubdivisions() {
+  function openTodaySubdivisions(item?: ListItem) {
+    if (item !== undefined) todayIndex = getItemIndex(listToday, item)
+    if (todayIndex < 0) return
     todayLevels.push(todayLevel)
     todayLevel = todayIndex
     todayIndex = -1
   }
 
-  function openDoneSubdivisions() {
+  function openDoneSubdivisions(item?: ListItem) {
+    if (item !== undefined) doneIndex = getItemIndex(listDones, item)
+    if (doneIndex < 0) return
     doneLevels.push(doneLevel)
     doneLevel = doneIndex
     doneIndex = -1
@@ -574,9 +524,6 @@
     if (isMoving) return
 
     let menu = []
-    if (listToday[todayIndex].subdivisions) {
-      menu.push("Abrir")
-    }
     menu.push("Concluir")
     if (listToday.length>1) {
       menu.push("Mover")
@@ -588,18 +535,7 @@
     let result = await action(item.name, "Nada", menu)
 
     switch (result) {
-      case "Abrir":
-        openTodaySubdivisions()
-        break
       case "Concluir":
-        /*
-        dones = addToList({
-          list: dones,
-          item
-        }) // Places the tapped active task at the top of the dones tasks.
-
-        today = removeFromList({ list: today, item, level: todayLevel }) // Removes the tapped active task.
-        */
         moveTaskToList({
           from: today,
           level: todayLevel,
@@ -615,15 +551,6 @@
         break;
       }
       case "Pendente":
-        /*
-        todos = addToList({
-          list: todos,
-          item
-        }) // Places the tapped active task at the top of the pendent tasks.
-        saveTodos()
-
-        today = removeFromList({ list: today, item, level: todayLevel }) // Removes the tapped active task.
-        */
         moveTaskToList({
           from: today,
           level: todayLevel,
@@ -650,9 +577,6 @@
     doneIndex = args.index
 
     let menu = []
-    if (listDones[doneIndex].subdivisions) {
-      menu.push("Abrir")
-    }
     menu.push("Para hoje")
     menu.push("Pendente")
     menu.push("Apagar")
@@ -661,12 +585,7 @@
     let result = await action(item.name, "Nada", menu);
 
     switch (result) {
-      case "Abrir":
-        openDoneSubdivisions()
-        break
       case "Para hoje":
-        /*today = appendToList(today, item) // Places the tapped active task at the top of the today tasks.
-        dones = removeFromList({ list: dones, item }) // Removes the tapped active task.*/
         moveTaskToList({
           from: dones,
           level: doneLevel,
@@ -678,13 +597,6 @@
         })
         break;
       case "Pendente":
-        /*todos = addToList({
-          list: todos,
-          item
-        }) // Places the tapped active task at the top of the pendent tasks.
-        saveTodos()
-
-        dones = removeFromList({ list: dones, item }) // Removes the tapped active task.*/
         moveTaskToList({
           from: dones,
           level: doneLevel,
@@ -909,7 +821,24 @@
           colSpan="2"
         >
           <Template let:item>
-            <label text="{item.name}" textWrap="true" />
+            <dockLayout stretchLastChild="true" colSpan="2">
+              {#if item.subdivisions}
+                <button
+                  class="button-abrir"
+                  dock="right"
+                  width="50"
+                  text="{"📁 "+item.subdivisions.length}"
+                  on:tap="{() => openTodoSubdivisions(item)}"
+                />
+              {/if}
+              <label
+                text="{item.name}"
+                textWrap="true"
+                on:tap={() => onTodoItemTap({
+                  index: getItemIndex(listTodos, item)
+                })}
+              />
+            </dockLayout>
           </Template>
         </listView>
 
@@ -975,18 +904,35 @@
           on:itemTap="{onTodayTap}"
         >
         <Template let:item>
-          {#if listToday[todayIndex] === item}
-            <label
-              class="selected-normal"
-              text="{item.name}"
-              textWrap="true"
-            />
-          {:else}
-            <label
-              text="{item.name}"
-              textWrap="true"
-            />
-          {/if}
+          <dockLayout stretchLastChild="true" colSpan="2">
+            {#if item.subdivisions}
+              <button
+                class="button-abrir"
+                dock="right"
+                width="50"
+                text="{"📁 "+item.subdivisions.length}"
+                on:tap="{() => openTodaySubdivisions(item)}"
+              />
+            {/if}
+            {#if listToday[todayIndex] === item}
+              <label
+                text="{item.name}"
+                class="selected-normal"
+                textWrap="true"
+                on:tap={() => onTodayTap({
+                  index: getItemIndex(listToday, item)
+                })}
+              />
+            {:else}
+              <label
+                text="{item.name}"
+                textWrap="true"
+                on:tap={() => onTodayTap({
+                  index: getItemIndex(listToday, item)
+                })}
+              />
+            {/if}
+          </dockLayout>
         </Template>
       </listView>
     {/if}
@@ -998,11 +944,25 @@
         on:itemTap="{onDoneTap}"
       >
         <Template let:item>
-          <label
-            text="{item.name}"
-            class="todo-item-completed"
-            textWrap="true"
-          />
+          <dockLayout stretchLastChild="true" colSpan="2">
+            {#if item.subdivisions}
+              <button
+                class="button-abrir"
+                dock="right"
+                width="50"
+                text="{"📁 "+item.subdivisions.length}"
+                on:tap="{() => openDoneSubdivisions(item)}"
+              />
+            {/if}
+            <label
+              text="{item.name}"
+              class="todo-item-completed"
+              textWrap="true"
+              on:tap={() => onDoneTap({
+                index: getItemIndex(listDones, item)
+              })}
+            />
+          </dockLayout>
         </Template>
       </listView>
     </tabContentItem>
@@ -1037,6 +997,13 @@
 
   .selected-normal {
     /*font-weight: bold;*/
+  }
+
+  .button-abrir {
+    border-radius: 5;
+    font-size: 16;
+    padding: 0;
+    height: 24;
   }
 
 </style>
