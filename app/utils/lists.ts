@@ -1,3 +1,4 @@
+import { prompt, confirm } from '@nativescript/core/ui/dialogs'
 import { array_move } from "./arrays";
 
 const appSettings = require("tns-core-modules/application-settings");
@@ -52,6 +53,14 @@ type MoveTaskToListData = {
   onMove: (toAfter: List) => void
   onRemove: (fromAfter: List) => void
   onGoBack: () => void
+}
+
+type ModifyTaskFromListData = {
+  list: List
+  level: number
+  index: number
+  name: string
+  onModify: (after: List) => void
 }
 
 export function addToList(data: AddToListData): List {
@@ -240,3 +249,55 @@ function newTopItem(data: NewTopItemData): ListItem {
   return null
 }
 
+export async function modifyTaskFromList(data: ModifyTaskFromListData): Promise<boolean> {
+  const { list, level, index, name, onModify } = data
+
+  const edition = await prompt({
+    defaultText: name,
+    cancelButtonText: 'Cancelar',
+    cancelable: true,
+    okButtonText: 'Ok',
+    title: 'Edição de tarefa'
+  })
+
+  if (edition.result) {
+    const after = modifyListItem({
+      list,
+      level,
+      index,
+      name: edition.text,
+    })
+    if (onModify) onModify(after)
+  }
+  return edition.result
+}
+
+type ConfirmDeleteTaskData = {
+  list: List,
+  level: number,
+  index: number,
+  name: string,
+  confirmation: boolean,
+  onDelete: (after: List) => void,
+}
+
+export async function confirmDeleteTask(data: ConfirmDeleteTaskData): Promise<boolean> {
+  const { list, level, index, name, confirmation, onDelete } = data
+
+  if (!confirmation || await confirm({
+    title: 'Apagar tarefa?',
+    message: name,
+    okButtonText: 'Sim',
+    cancelable: true,
+    cancelButtonText: 'Não',
+  })) {
+    const after = removeFromList({
+      list,
+      index,
+      level,
+    }) // Removes the tapped active task.
+    if (onDelete) onDelete(after)
+    return true
+  }
+  return false
+}

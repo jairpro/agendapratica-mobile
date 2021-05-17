@@ -8,10 +8,12 @@
 
   import {
     addToList,
+    confirmDeleteTask,
     getItemIndex,
     List,
     ListItem,
     modifyListItem,
+    modifyTaskFromList,
     moveList,
     moveTaskToList,
     reactList,
@@ -20,7 +22,7 @@
   } from './utils/lists'
 
   import { hideKeyboard, showKeyboard } from './utils/os';
-import { element } from "svelte/internal";
+  import { action } from '@nativescript/core/ui/dialogs'
 
   const appSettings = require("tns-core-modules/application-settings");
 
@@ -57,6 +59,8 @@ import { element } from "svelte/internal";
   let doneLevels = [-1]
 
   let todoGroups = []
+
+  let confirmation = false
 
   $: {
     todoGroups = []
@@ -230,6 +234,17 @@ import { element } from "svelte/internal";
     }
   }
 
+  const ACTION_CONCLUDE = "👍🏽 Pronta"
+  const ACTION_TODAY = "☀ Fazer hoje!"
+  const ACTION_ORDER = "↕ Ordem"
+  const ACTION_MOVE_TO = "⤴ Mover para..."
+  const ACTION_PENDING = "🕖 Pendente"
+  const ACTION_SUBDIVID = "🗂 Subdividir"
+  const ACTION_JOIN = "📄 Sem subdivisões"
+  const ACTION_EDIT = "✍🏽 Editar"
+  const ACTION_DELETE = "❌ Apagar"
+  const ACTION_NOTHING = "Nada"
+
   async function todoMenu(args) {
     if (isEditing) {
       todos = modifyListItem({
@@ -251,26 +266,26 @@ import { element } from "svelte/internal";
     let item = listTodos[args.index]
 
     let menu = []
-    menu.push("Para hoje")
-    menu.push("Concluir")
-    menu.push("Editar")
+    menu.push(ACTION_TODAY)
+    menu.push(ACTION_CONCLUDE)
+    menu.push(ACTION_EDIT)
     if (todoLevel<0) {
       if (!listTodos[todoIndex].subdivisions) {
-        menu.push("Subdividir")
+        menu.push(ACTION_SUBDIVID)
       }
       else if (listTodos[todoIndex].subdivisions.length === 0) {
-        menu.push("Unificar")
+        menu.push(ACTION_JOIN)
       }
     }
     if (!listTodos[todoIndex].subdivisions) {
-      menu.push("Mover para...")
+      menu.push(ACTION_MOVE_TO)
     }
-    menu.push("Apagar")
+    menu.push(ACTION_DELETE)
 
     let result = await action(item.name, "Nada", menu);
 
     switch (result) {
-      case "Para hoje":
+      case ACTION_TODAY:
         moveTaskToList({
           from: todos,
           level: todoLevel,
@@ -286,7 +301,7 @@ import { element } from "svelte/internal";
         })
         break;
 
-      case "Concluir":
+      case ACTION_CONCLUDE:
         moveTaskToList({
           from: todos,
           level: todoLevel,
@@ -301,22 +316,30 @@ import { element } from "svelte/internal";
           onGoBack: () => goBack(),
         })
 
-        break;
-      case "Editar": {
-        textFieldValue = item.name
-        isEditing = true
-        showKeyboard()
-        break;
-      }
-      case "Apagar":
-        todos = removeFromList({
+        break
+
+      case ACTION_EDIT:
+        modifyTaskFromList({
+          list: todos,
+          level: todoLevel,
+          index: todoIndex,
+          name: item.name,
+          onModify: after => (todos = after, saveTodos()),
+        })
+        break
+
+      case ACTION_DELETE:
+        confirmDeleteTask({
+          name: item.name,
           list: todos,
           index: todoIndex,
           level: todoLevel,
-        }) // Removes the tapped active task.
-        saveTodos()
-        break;
-      case "Subdividir":
+          confirmation,
+          onDelete: after => (todos = after, saveTodos()),
+        })
+        break
+
+      case ACTION_SUBDIVID:
         title = item.name
         todoLevel = todoIndex
         if (item.subdivisions === undefined) {
@@ -329,18 +352,18 @@ import { element } from "svelte/internal";
 
         break;
 
-      case "Mover para...":
+      case ACTION_MOVE_TO:
         await todoMenuMoverPara(item)
         break
 
-      case "Unificar":
+      case ACTION_JOIN:
         if (todoLevel > -1) return
         todos[todoIndex].subdivisions = undefined
         saveTodos()
 
         break
 
-      case "Nada" || undefined: // Dismisses the dialog
+      case ACTION_NOTHING || undefined: // Dismisses the dialog
         break;
     }
   }
@@ -419,19 +442,21 @@ import { element } from "svelte/internal";
 
     if (isMoving) return renderToday()
 
+
     let menu = []
-    menu.push("Concluir")
+    menu.push(ACTION_CONCLUDE)
     if (listToday.length>1) {
-      menu.push("Mover")
+      menu.push(ACTION_ORDER)
     }
-    menu.push("Pendente")
-    menu.push("Apagar")
+    menu.push(ACTION_PENDING)
+    menu.push(ACTION_EDIT)
+    menu.push(ACTION_DELETE)
 
     let item = todayLevel > -1 ? today[todayLevel].subdivisions[todayIndex] : today[todayIndex]
     let result = await action(item.name, "Nada", menu)
 
     switch (result) {
-      case "Concluir":
+      case ACTION_CONCLUDE:
         moveTaskToList({
           from: today,
           level: todayLevel,
@@ -443,11 +468,11 @@ import { element } from "svelte/internal";
           onGoBack: () => goBack(),
         })
         break;
-      case "Mover": {
+      case ACTION_ORDER: {
         isMoving = true
         break;
       }
-      case "Pendente":
+      case ACTION_PENDING:
         moveTaskToList({
           from: today,
           level: todayLevel,
@@ -462,12 +487,31 @@ import { element } from "svelte/internal";
           onGoBack: () => goBack(),
         })
 
-        break;
-      case "Apagar":
-        today = removeFromList({ list: today, item, level: todayLevel }) // Removes the tapped active task.
-        break;
-      case "Nada" || undefined: // Dismisses the dialog
-        break;
+        break
+
+      case ACTION_EDIT:
+        modifyTaskFromList({
+          list: today,
+          level: todayLevel,
+          index: todayIndex,
+          name: item.name,
+          onModify: after => today = after,
+        })
+        break
+
+      case ACTION_DELETE:
+        confirmDeleteTask({
+          list: today,
+          level: todayLevel,
+          index: todayIndex,
+          name: item.name,
+          confirmation,
+          onDelete: after => today = after,
+        })
+        break
+
+      case ACTION_NOTHING || undefined: // Dismisses the dialog
+        break
     }
   }
 
@@ -475,15 +519,16 @@ import { element } from "svelte/internal";
     doneIndex = args.index
 
     let menu = []
-    menu.push("Para hoje")
-    menu.push("Pendente")
-    menu.push("Apagar")
+    menu.push(ACTION_TODAY)
+    menu.push(ACTION_PENDING)
+    menu.push(ACTION_EDIT)
+    menu.push(ACTION_DELETE)
 
     let item = doneLevel > -1 ? dones[doneLevel].subdivisions[doneIndex] : dones[doneIndex]
     let result = await action(item.name, "Nada", menu);
 
     switch (result) {
-      case "Para hoje":
+      case ACTION_TODAY:
         moveTaskToList({
           from: dones,
           level: doneLevel,
@@ -494,8 +539,9 @@ import { element } from "svelte/internal";
           onRemove: fromAfter => dones = fromAfter,
           onGoBack: () => goBack(),
         })
-        break;
-      case "Pendente":
+        break
+
+      case ACTION_PENDING:
         moveTaskToList({
           from: dones,
           level: doneLevel,
@@ -509,12 +555,32 @@ import { element } from "svelte/internal";
           onRemove: fromAfter => dones = fromAfter,
           onGoBack: () => goBack(),
         })
-        break;
-      case "Apagar":
-        dones = removeFromList({ list: dones, item }) // Removes the tapped active task.
-        break;
-      case "Nada" || undefined: // Dismisses the dialog
-        break;
+        break
+
+      case ACTION_EDIT:
+        modifyTaskFromList({
+          list: dones,
+          level: doneLevel,
+          index: doneIndex,
+          name: item.name,
+          onModify: after => dones = after,
+        })
+
+        break
+
+      case ACTION_DELETE:
+        confirmDeleteTask({
+          list: dones,
+          level: doneLevel,
+          index: doneIndex,
+          name: item.name,
+          confirmation,
+          onDelete: after => dones = after,
+        })
+        break
+
+      case ACTION_NOTHING || undefined: // Dismisses the dialog
+        break
     }
   }
 
@@ -628,9 +694,9 @@ import { element } from "svelte/internal";
     on:selectedIndexChange="{handleTabsChange}"
   >
     <tabStrip>
-      <tabStripItem title="Pendentes" />
-      <tabStripItem title="Hoje" />
-      <tabStripItem title="Concluídas" />
+      <tabStripItem title="🕖 Pendentes" />
+      <tabStripItem title="☀ Hoje" />
+      <tabStripItem title="👍🏽 PRONTAS" />
     </tabStrip>
 
     <tabContentItem>
