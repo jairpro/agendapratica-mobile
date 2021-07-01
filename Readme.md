@@ -56,7 +56,7 @@ Use o comando `ns build` para gerar o pacote de instação.
 ns build android
 ```
 
-Obs: modo debug, mas funcional para o dispositivo. Esse APK será gerando na pasta do projeto em:
+Obs: O comando tal como está acima gera o APK em modo debug, é o caminho mais rápido e já funcional para executar seu app no dispositivo. Esse APK será gerando na pasta do projeto em:
 `platforms\android\app\build\outputs\apk\debug`
 
 ### Executando como aplicação:
