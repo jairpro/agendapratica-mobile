@@ -47,7 +47,21 @@ Para executar e depurar seu projeto num dispositivo móvel durante o desenvolvim
 
 Após instalar o *Native Scrip Preview* use `ns preview`, para executar o projeto no seu dispositivo.
 
-Use os comandos `ns build` ou `ns run` para gerar o pacote de instação ou executar seu projeto como uma aplicação *NativeScript* normal.
+### Pacote de Instalação
+
+Use o comando `ns build` para gerar o pacote de instação.
+
+#### Gerando APK
+```shell
+ns build android
+```
+
+Obs: modo debug, mas funcional para o dispositivo. Esse APK será gerando na pasta do projeto em:
+`platforms\android\app\build\outputs\apk\debug`
+
+### Executando como aplicação:
+
+Use o comando `ns run` para executar seu projeto como uma aplicação *NativeScript* normal.
 
 Exemplo de instalação e execução de app no seu dispositivo:
 
