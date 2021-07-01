@@ -33,8 +33,6 @@ $ npm install -g nativescript
 Verifque com:
 ```bash
 $ ns
-# ou
-$ tns
 ```
 
 ### 4) Playground e Preview do Native Script:

@@ -128,7 +128,7 @@ export function removeFromList(data: RemoveFromListData): List {
 
 export function saveList(list: List, key: string) {
   appSettings.setString(key, JSON.stringify(list))
-  console.log(`Salvou ${key}`)
+  //console.log(`Salvou ${key}`)
 }
 
 export function reactList(list: List): List {
