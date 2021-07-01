@@ -45,13 +45,22 @@ Para executar e depurar seu projeto num dispositivo móvel durante o desenvolvim
 
 ## Executando no seu dispositivo:
 
-Após instalar o *Native Scrip Preview* use `ns preview`, para executar o projeto no seu dispositivo.
+Após instalar o *Native Scrip Preview* e para executar o projeto no seu dispositivo, use o comando:
+```shell
+ns preview
+```
 
 ### Pacote de Instalação
 
-Use o comando `ns build` para gerar o pacote de instação.
+Para gerar o pacote de instação use o comando `ns build` juntamente com as opções de cada plataforma.
+
+Para mais informações use o comando:
+```shell
+ns build --help
+```
 
 #### Gerando APK
+Para gerar o pacote de instação Android use o comando:
 ```shell
 ns build android
 ```
@@ -65,8 +74,11 @@ Use o comando `ns run` para executar seu projeto como uma aplicação *NativeScr
 
 Exemplo de instalação e execução de app no seu dispositivo:
 
-```bash
+```shell
 ns run android
-# ou
+```
+ou
+
+```shell
 ns run ios
 ```
