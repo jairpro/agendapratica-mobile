@@ -1,16 +1,14 @@
 <script lang="ts">
   import { closeModal } from 'svelte-native'
   import { DEFAULT_CONFIRM_DELETE, OPTION_CONFIRM_DELETE } from '~/config/options';
-  const appSettings = require("tns-core-modules/application-settings");
+  import { StorageGetBoolean, StorageSetBoolean } from '~/utils/storage';
 
   let save = false
-  let confirmDelete = appSettings.getBoolean(OPTION_CONFIRM_DELETE, DEFAULT_CONFIRM_DELETE)
-  //console.log('confirmDelete (get):', JSON.stringify(confirmDelete))
+  let confirmDelete = StorageGetBoolean(OPTION_CONFIRM_DELETE, DEFAULT_CONFIRM_DELETE)
 
   $: {
     if (save) {
-      appSettings.setBoolean(OPTION_CONFIRM_DELETE, confirmDelete)
-      //console.log('confirmDelete (set):', JSON.stringify(confirmDelete))
+      StorageSetBoolean(OPTION_CONFIRM_DELETE, confirmDelete)
     }
     save = true
   }

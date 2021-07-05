@@ -4,7 +4,13 @@
     AndroidApplication,
     AndroidActivityBackPressedEventData
   } from "tns-core-modules/application";
+  import { action } from '@nativescript/core/ui/dialogs'
+	import { showModal } from 'svelte-native'
 
+  import Tasks from "./components/Tasks.svelte";
+  import Options from "./pages/Options.svelte";
+
+  import { hideKeyboard, showKeyboard } from './utils/os';
   import {
     addToList,
     confirmDeleteTask,
@@ -19,53 +25,40 @@
     removeFromList,
     saveList
   } from './utils/lists'
+  import {
+    DEFAULT_CONFIRM_DELETE,
+    OPTION_CONFIRM_DELETE
+  } from "./config/options";
+  import {
+    ACTION_ADICIONAR,
+    ACTION_CONCLUDE,
+    ACTION_CONFIG,
+    ACTION_DELETE,
+    ACTION_EDIT,
+    ACTION_JOIN,
+    ACTION_MOVE_OUT,
+    ACTION_MOVE_TO,
+    ACTION_NOTHING,
+    ACTION_ORDER,
+    ACTION_PENDING,
+    ACTION_SUBDIVID,
+    ACTION_TODAY,
+  } from './utils/consts'
+  import { MenuArgs, TabsSelectedIndexChangeArgs} from './utils/types'
+  import { StorageGetList, StorageGetBoolean } from "./utils/storage";
 
-  import { hideKeyboard, showKeyboard } from './utils/os';
-  import { action } from '@nativescript/core/ui/dialogs'
-	import { showModal } from 'svelte-native'
-
-  const appSettings = require("tns-core-modules/application-settings");
-
-  import Options from "./pages/Options.svelte";
-  import Tasks from "./components/Tasks.svelte";
-  import { DEFAULT_CONFIRM_DELETE, OPTION_CONFIRM_DELETE } from "./config/options";
-
-  let strTodos = appSettings.getString("todos")
-  let todos = typeof strTodos === "string" ? JSON.parse(strTodos) : []
+  let todos = StorageGetList("todos")
   let listTodos = todos
 
   let salvarToday = false
-  let strToday = appSettings.getString("today")
-  let today: List = typeof strToday === "string" ? JSON.parse(strToday) : [] //today items go here
+  let today: List = StorageGetList("today")
   let listToday = today
 
   let salvarDones = false
-  let strDones = appSettings.getString("dones")
-  let dones = typeof strDones === "string" ? JSON.parse(strDones) : [] //completed items go here
+  let dones = StorageGetList("dones")
   let listDones = dones
 
   let confirmDelete: boolean = false
-  loadOptions()
-
-  function loadOptions() {
-    confirmDelete = appSettings.getBoolean(OPTION_CONFIRM_DELETE, DEFAULT_CONFIRM_DELETE)
-  }
-
-  const ACTION_ADICIONAR = "+"
-
-  const ACTION_CONCLUDE = "👍 Pronta"
-  const ACTION_TODAY = "☀ Fazer hoje!"
-  const ACTION_ORDER = "↕ Ordem"
-  const ACTION_MOVE_TO = "⤴ Mover para..."
-  const ACTION_MOVE_OUT = "⤴ Fora"
-  const ACTION_PENDING = "🕖 Pendente"
-  const ACTION_SUBDIVID = "🗂 Subdividir"
-  const ACTION_JOIN = "📄 Sem subdivisões"
-  const ACTION_EDIT = "✍ Editar"
-  const ACTION_DELETE = "❌ Apagar"
-  const ACTION_NOTHING = "Nada"
-
-  const ACTION_CONFIG = "⚙ Configurações"
 
   let initialTabIndex = Number(today.length>0)
   let tabIndex = 0
@@ -84,13 +77,20 @@
 
   let todoGroups = []
 
+  let textFieldValue = ""
+
+  let isEditing = false
+
+  let todoName = ""
+
+  let defaultTitle = "Minhas Tarefas"
+  let title = defaultTitle
+
+  let isMoving = false
+
   $: {
     todoGroups = []
     todos.map((item: ListItem) => item.subdivisions && todoGroups.push(item))
-  }
-
-  function saveTodos() {
-    saveList(todos, "todos")
   }
 
   $: if (todos) {
@@ -114,11 +114,6 @@
     )
   }
 
-  function saveToday() {
-    if (salvarToday) saveList(today, "today")
-    salvarToday = true
-  }
-
   $: if (today) saveToday()
 
   $: {
@@ -126,23 +121,11 @@
     salvarDones = true
   }
 
-  let textFieldValue = ""
-
-  let isEditing = false
-
   $: buttonText = isEditing ? 'Modificar' : ACTION_ADICIONAR
-
-  let todoName = ""
 
   $: {
     textFieldValue = (isEditing && todoIndex > -1) ? todoName : ""
   }
-
-  let isMoving = false
-  const onClosePanelMove = (e: CustomEvent) => isMoving = e.detail
-
-  let defaultTitle = "Minhas Tarefas"
-  let title = defaultTitle
 
   $: titleTodos = todoLevel > -1 ? todos[todoLevel].name : defaultTitle
   $: titleToday = todayLevel > -1 ? today[todayLevel].name : defaultTitle
@@ -152,6 +135,34 @@
     case 0: title = titleTodos; break
     case 1: title = titleToday; break
     case 2: title = titleDones; break
+  }
+
+  loadOptions()
+
+  if (application.android) {
+    application.android.on(
+      AndroidApplication.activityBackPressedEvent,
+      (data: AndroidActivityBackPressedEventData) => {
+        if (goBack()) data.cancel = true; // prevents default back button behavior
+      }
+    )
+  }
+
+  function onClosePanelMove(e: CustomEvent) {
+    return isMoving = e.detail
+  }
+
+  function loadOptions() {
+    confirmDelete = StorageGetBoolean(OPTION_CONFIRM_DELETE, DEFAULT_CONFIRM_DELETE)
+  }
+
+  function saveTodos() {
+    saveList(todos, "todos")
+  }
+
+  function saveToday() {
+    if (salvarToday) saveList(today, "today")
+    salvarToday = true
   }
 
   function onButtonTap() {
@@ -251,7 +262,7 @@
     }
   }
 
-  async function menuTodo(args) {
+  async function menuTodo(args: MenuArgs) {
     todoIndex = args.index
     todoName = listTodos[args.index].name
     if (isEditing) {
@@ -374,37 +385,7 @@
     }
   }
 
-  function openTodoSubdivisions(item?: ListItem) {
-    if (item !== undefined) todoIndex = getItemIndex(listTodos, item)
-    if (todoIndex < 0) return
-    todoLevel = todoIndex
-    todoLevels.push(todoLevel)
-    todoIndex = -1
-  }
-
-  function openTodaySubdivisions(item?: ListItem) {
-    if (item !== undefined) todayIndex = getItemIndex(listToday, item)
-    if (todayIndex < 0) return
-    todayLevel = todayIndex
-    todayLevels.push(todayLevel)
-    todayIndex = -1
-  }
-
-  function openDoneSubdivisions(item?: ListItem) {
-    if (item !== undefined) doneIndex = getItemIndex(listDones, item)
-    if (doneIndex < 0) return
-    doneLevel = doneIndex
-    doneLevels.push(doneLevel)
-    doneIndex = -1
-  }
-
-  function renderToday() {
-    salvarToday = false
-    today = reactList(today)
-    salvarToday = true
-  }
-
-  async function menuToday(args) {
+  async function menuToday(args: MenuArgs) {
     todayIndex = args.index
 
     if (isMoving) return renderToday()
@@ -482,7 +463,7 @@
     }
   }
 
-  async function menuDone(args) {
+  async function menuDone(args: MenuArgs) {
     doneIndex = args.index
 
     let menu = []
@@ -551,6 +532,36 @@
     }
   }
 
+  function openTodoSubdivisions(item?: ListItem) {
+    if (item !== undefined) todoIndex = getItemIndex(listTodos, item)
+    if (todoIndex < 0) return
+    todoLevel = todoIndex
+    todoLevels.push(todoLevel)
+    todoIndex = -1
+  }
+
+  function openTodaySubdivisions(item?: ListItem) {
+    if (item !== undefined) todayIndex = getItemIndex(listToday, item)
+    if (todayIndex < 0) return
+    todayLevel = todayIndex
+    todayLevels.push(todayLevel)
+    todayIndex = -1
+  }
+
+  function openDoneSubdivisions(item?: ListItem) {
+    if (item !== undefined) doneIndex = getItemIndex(listDones, item)
+    if (doneIndex < 0) return
+    doneLevel = doneIndex
+    doneLevels.push(doneLevel)
+    doneIndex = -1
+  }
+
+  function renderToday() {
+    salvarToday = false
+    today = reactList(today)
+    salvarToday = true
+  }
+
   function moveTop() {
     let list = todayLevel > -1 ? today[todayLevel].subdivisions : today
     if (todayIndex<=0 || todayIndex > list.length-1) return
@@ -583,16 +594,7 @@
     today = moveList(today, index, todayIndex, todayLevel)
   }
 
-  if (application.android) {
-    application.android.on(
-      AndroidApplication.activityBackPressedEvent,
-      (data: AndroidActivityBackPressedEventData) => {
-        if (goBack()) data.cancel = true; // prevents default back button behavior
-      }
-    )
-  }
-
-  function handleTabsChange(args) {
+  function handleTabsChange(args: TabsSelectedIndexChangeArgs) {
     var page = args.object;
     var tabs = page.getViewById("guias");
     tabIndex = tabs.selectedIndex

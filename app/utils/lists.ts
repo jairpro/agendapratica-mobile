@@ -1,7 +1,6 @@
 import { prompt, confirm } from '@nativescript/core/ui/dialogs'
 import { array_move } from "./arrays";
-
-const appSettings = require("tns-core-modules/application-settings");
+import { StorageSetList } from './storage';
 
 export type ListItem = {
   name: string
@@ -127,7 +126,7 @@ export function removeFromList(data: RemoveFromListData): List {
 }
 
 export function saveList(list: List, key: string) {
-  appSettings.setString(key, JSON.stringify(list))
+  StorageSetList(key, list)
   //console.log(`Salvou ${key}`)
 }
 
