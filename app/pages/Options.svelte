@@ -1,7 +1,7 @@
 <script lang="ts">
   import { closeModal } from 'svelte-native'
-  import { DEFAULT_CONFIRM_DELETE, OPTION_CONFIRM_DELETE } from '~/config/options';
-  import { StorageGetBoolean, StorageSetBoolean } from '~/utils/storage';
+  import { DEFAULT_CONFIRM_DELETE, OPTION_CONFIRM_DELETE } from '~/config/options'
+  import { StorageGetBoolean, StorageSetBoolean } from '~/utils/storage'
 
   let save = false
   let confirmDelete = StorageGetBoolean(OPTION_CONFIRM_DELETE, DEFAULT_CONFIRM_DELETE)

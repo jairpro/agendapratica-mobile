@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { List } from "../utils/lists";
-  import PanelMove from "./PanelMove.svelte";
-  import TasksBasic from "./TasksBasic.svelte";
+  import { List } from "../utils/lists"
+  import PanelMove from "./PanelMove.svelte"
+  import TasksBasic from "./TasksBasic.svelte"
 
   export let row: string = "0"
   export let colSpan: string = "0"
@@ -9,8 +9,8 @@
   export let onMenu: (e: CustomEvent) => void
   export let onOpen: (e: CustomEvent) => void
   export let onClosePanelMove: (e: CustomEvent) => void = null
-  export let onMoveTop: () => void = null;
-  export let onMoveUp: () => void = null;
+  export let onMoveTop: () => void = null
+  export let onMoveUp: () => void = null
   export let onMoveDown: () => void = null
   export let onMoveBottom: () => void = null
   export let completed = false
@@ -54,7 +54,7 @@
 <dockLayout
   row="{row}"
   colSpan="{colSpan}"
-  stretchLastChild="true"
+  stretchLastChild="{true}"
 >
   {#if isMoving }
     <stackLayout

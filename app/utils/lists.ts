@@ -1,6 +1,6 @@
 import { prompt, confirm } from '@nativescript/core/ui/dialogs'
-import { array_move } from "./arrays";
-import { StorageSetList } from './storage';
+import { array_move } from "./arrays"
+import { StorageSetList } from './storage'
 
 export type ListItem = {
   name: string
@@ -8,6 +8,8 @@ export type ListItem = {
 }
 
 export type List = ListItem[]
+
+export type Levels = number[]
 
 type AddToListData = {
   list: List

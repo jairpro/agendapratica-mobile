@@ -1,10 +1,11 @@
-import { List } from "./lists";
+import { List } from "./lists"
 
-const appSettings = require("tns-core-modules/application-settings");
+const appSettings = require("tns-core-modules/application-settings")
 
 export function StorageGetList(key: string): List {
   let str = appSettings.getString(key)
   let list = typeof str === 'string' ? JSON.parse(str) : []
+  list = list instanceof Array ? list : []
   return list
 }
 

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte'
-  import { getItemIndex, List, ListItem } from "../utils/lists";
+  import { getItemIndex, List, ListItem } from "../utils/lists"
 
-  let dispatch = createEventDispatcher();
+  let dispatch = createEventDispatcher()
 
   export let list: List
   export let item: ListItem
@@ -36,7 +36,7 @@
 </script>
 
 <dockLayout
-  stretchLastChild="true"
+  stretchLastChild="{true}"
   colSpan="2"
   class="{classRow()}"
 >
@@ -53,7 +53,7 @@
   <label
     class="{classLabel()}"
     text="{item.name}"
-    textWrap="true"
+    textWrap="{true}"
     on:tap="{onMenu}"
   />
 </dockLayout>

@@ -1,14 +1,14 @@
 <script lang="ts">
   import {createEventDispatcher} from "svelte"
-  import { Template } from "svelte-native/components";
-  import { List } from "~/utils/lists";
-  import Task from "./Task.svelte";
+  import { Template } from "svelte-native/components"
+  import { List } from "~/utils/lists"
+  import Task from "./Task.svelte"
 
   const dispatch = createEventDispatcher()
 
   export let row: string = "0"
   export let colSpan: string = "0"
-  export let index = -1;
+  export let index = -1
 
   export let list: List
   export let onMenu: (e: CustomEvent) => void
