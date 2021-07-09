@@ -13,8 +13,10 @@
   export let list: List
   export let onMenu: (e: CustomEvent) => void
   export let onOpen: (e: CustomEvent) => void
+  export let onDone: (e: CustomEvent) => void = null
   export let completed = false
   export let isMoving = false
+  export let donabled = false
 
   function onSetIndex(e: CustomEvent) {
     // console.log("TaskBasic.onSetIndex.e.detail:", e.detail)
@@ -37,8 +39,10 @@
         completed="{completed}"
         isMoving="{isMoving}"
         selected="{true}"
+        donabled="{donabled}"
         on:menu="{onMenu}"
         on:open="{onOpen}"
+        on:done="{onDone}"
         on:setIndex="{onSetIndex}"
       />
     {:else}
@@ -47,8 +51,11 @@
         item="{item}"
         completed="{completed}"
         isMoving="{isMoving}"
+        selected="{false}"
+        donabled="{donabled}"
         on:menu="{onMenu}"
         on:open="{onOpen}"
+        on:done="{onDone}"
         on:setIndex="{onSetIndex}"
       />
     {/if}

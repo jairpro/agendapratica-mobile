@@ -1,5 +1,5 @@
-import * as application from "tns-core-modules/application"
 import {
+  android,
   AndroidApplication,
   AndroidActivityBackPressedEventData
 } from "tns-core-modules/application"
@@ -7,8 +7,8 @@ import {
 import { goBack } from "~/utils/goBack"
 
 export function backEvent() {
-  if (application.android) {
-    application.android.on(
+  if (android) {
+    android.on(
       AndroidApplication.activityBackPressedEvent,
       (data: AndroidActivityBackPressedEventData) => {
         if (goBack()) data.cancel = true // prevents default back button behavior

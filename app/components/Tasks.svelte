@@ -13,9 +13,11 @@
   export let onMoveUp: () => void = null
   export let onMoveDown: () => void = null
   export let onMoveBottom: () => void = null
+  export let onDone: (e: CustomEvent) => void = null
   export let completed = false
   export let isMoving = false
   export let index = -1
+  export let donabled = false
 
   //let index = -1
 
@@ -79,6 +81,8 @@
     completed="{completed}"
     isMoving="{isMoving}"
     index="{index}"
+    donabled="{donabled}"
     on:setIndex="{onSetIndex}"
+    onDone="{onDone}"
   />
 </dockLayout>

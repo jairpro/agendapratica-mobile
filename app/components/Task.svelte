@@ -6,20 +6,27 @@
 
   export let list: List
   export let item: ListItem
+  export let donabled = false
   let testIndex = -1
 
   function onMenu() {
     let index = getItemIndex(list, item)
     testIndex = index
-    // console.log(`selecionando... testIndex: ${testIndex}`)
     dispatch("setIndex", index)
     dispatch("menu", { index })
   }
+
   const onOpen = () => {
     testIndex = getItemIndex(list, item)
-    // console.log(`abrindo... testIndex: ${testIndex}`)
     dispatch("setIndex", -1)
     dispatch("open", item)
+  }
+
+  function onDone() {
+    let index = getItemIndex(list, item)
+    testIndex = index
+    dispatch("setIndex", index)
+    dispatch("done", { index })
   }
 
   export let completed = false
@@ -37,9 +44,19 @@
 
 <dockLayout
   stretchLastChild="{true}"
-  colSpan="2"
+  colSpan="3"
   class="{classRow()}"
->
+  >
+  {#if donabled}
+    <button
+      class="button-done"
+      dock="left"
+      width="30"
+      text="{"👍"}"
+      on:tap="{onDone}"
+    />
+  {/if}
+
   {#if item.subdivisions}
     <button
       class="button-abrir"
@@ -66,7 +83,7 @@
     color: #262626;
     color: #3c495e;
 
-    padding: 4 12;
+    padding: 4 24;
   }
 
   .button-abrir {
@@ -77,6 +94,17 @@
 
     padding: 0;
     margin-right: 12;
+  }
+
+  .button-done {
+    font-size: 16;
+
+    border-radius: 25%;
+    height: 32;
+
+    padding: 0;
+    margin-right: 0;
+    margin-left: 12;
   }
 
   .item-completed {

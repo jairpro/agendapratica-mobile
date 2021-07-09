@@ -77,6 +77,19 @@
 
   $: if (today) saveToday()
 
+  function done() {
+    moveTaskToList({
+      from: today,
+      level: todayLevel,
+      index: todayIndex,
+      to: dones,
+      append: false,
+      onMove: toAfter => setDones(toAfter),
+      onRemove: fromAfter => setToday(fromAfter),
+      onGoBack: () => goBack(),
+    })
+  }
+
   async function menuToday(args: MenuArgs) {
     setTodayIndex(args.index)
 
@@ -96,16 +109,7 @@
 
     switch (result) {
       case ACTION_CONCLUDE:
-        moveTaskToList({
-          from: today,
-          level: todayLevel,
-          index: todayIndex,
-          to: dones,
-          append: false,
-          onMove: toAfter => setDones(toAfter),
-          onRemove: fromAfter => setToday(fromAfter),
-          onGoBack: () => goBack(),
-        })
+        done()
         break
 
       case ACTION_ORDER: {
@@ -169,6 +173,15 @@
     setSalvarToday(true)
   }
 
+  function execDone(args: MenuArgs) {
+    setTodayIndex(args.index)
+    done()
+  }
+
+  function onDone(e: CustomEvent) {
+    execDone(e.detail)
+  }
+
   async function onMenuToday(e: CustomEvent) {
     await menuToday(e.detail)
   }
@@ -228,6 +241,8 @@
     onMoveUp="{moveUp}"
     onMoveDown="{moveDown}"
     onMoveBottom="{moveBottom}"
+    donabled="{true}"
+    onDone="{onDone}"
   />
 </tabContentItem>
 
