@@ -75,7 +75,7 @@ export function addToList(data: AddToListData): List {
   return [item, ...list]
 }
 
-function appendToList(data: AppendToListData): List {
+export function appendToList(data: AppendToListData): List {
   const { list, index, level } = data
   let { item } = data
 

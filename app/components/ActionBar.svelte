@@ -1,24 +1,26 @@
 <script lang="ts">
-  import Options from '~/pages/Options.svelte'
-
   import {
     defaultTitle,
+    isMovingStore,
     setTitle,
     tabIndexStore,
     titleStore,
   } from "~/stores/global"
 
-  import { ACTION_CONFIG } from "~/utils/consts"
   import { todoLevelStore, todosStore } from "~/stores/todo"
-  import { todayLevelStore, todayStore } from "~/stores/today"
+  import { listTodayStore, todayLevelStore, todayStore } from "~/stores/today"
   import { doneLevelStore, donesStore } from "~/stores/dones"
   import { goBack } from "~/utils/goBack"
-  import { showModal } from "svelte-native"
-  import { loadOptions } from "~/stores/options"
   import { List } from '~/utils/lists'
+
+  import ActionItemConfig from './ActionItemConfig.svelte'
+  // import ActionItemOrder from './ActionItemOrder.svelte';
 
   let tabIndex: number
   tabIndexStore.subscribe(value => tabIndex = value)
+
+  let isMoving: boolean
+  isMovingStore.subscribe(value => isMoving = value)
 
   let todos: List
   todosStore.subscribe(value => todos = value)
@@ -28,6 +30,9 @@
 
   let today: List
   todayStore.subscribe(value => today = value)
+
+  let listToday: List
+  listTodayStore.subscribe(value => listToday = value)
 
   let todayLevel: number
   todayLevelStore.subscribe(value => todayLevel = value)
@@ -48,16 +53,6 @@
   $: if (tabIndex === 0) setTitle(titleTodos)
   $: if (tabIndex === 1) setTitle(titleToday)
   $: if (tabIndex === 2) setTitle(titleDones)
-
-  async function launchOptions() {
-    await showModal({
-      page: Options,
-      fullscreen: true,
-      animated: true,
-    })
-
-    loadOptions()
-  }
 </script>
 
 <actionBar
@@ -78,13 +73,14 @@
     />
   {/if}
 
-  <actionItem
-    on:tap="{launchOptions}"
-    android.systemIcon="ic_menu_view"
-    android.position="popup"
-    class="menu"
-    text="{ACTION_CONFIG}"
-  />
+  <!--{#if tabIndex === 1 && listToday.length>1}
+    <ActionItemOrder />
+    <ActionItemConfig />
+  {:else}
+    <ActionItemConfig />
+  {/if}-->
+  <ActionItemConfig />
+
 </actionBar>
 
 <style>

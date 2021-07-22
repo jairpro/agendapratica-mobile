@@ -48,6 +48,8 @@
   import { saveTodos, setTodos, todosStore } from '~/stores/todo'
   import { confirmDeleteStore } from '~/stores/options'
 
+  import AddTextButton from '~/components/AddTextButton.svelte'
+
   let isMoving: boolean
   isMovingStore.subscribe(value => isMoving = value)
 
@@ -96,7 +98,7 @@
     if (isMoving) return renderToday()
 
     let menu = []
-    menu.push(ACTION_CONCLUDE)
+    //menu.push(ACTION_CONCLUDE)
     if (listToday.length>1) {
       menu.push(ACTION_ORDER)
     }
@@ -108,14 +110,14 @@
     let result = await action(item.name, ACTION_NOTHING, menu)
 
     switch (result) {
-      case ACTION_CONCLUDE:
+      /*case ACTION_CONCLUDE:
         done()
         break
+      */
 
-      case ACTION_ORDER: {
+      case ACTION_ORDER:
         setIsMoving(true)
         break
-      }
 
       case ACTION_PENDING:
         moveTaskToList({
@@ -230,20 +232,32 @@
 </script>
 
 <tabContentItem class="tab-today">
-  <Tasks
-    list="{listToday}"
-    onMenu="{onMenuToday}"
-    onOpen="{onOpenToday}"
-    index="{todayIndex}"
-    isMoving="{isMoving}"
-    onClosePanelMove="{onClosePanelMove}"
-    onMoveTop="{moveTop}"
-    onMoveUp="{moveUp}"
-    onMoveDown="{moveDown}"
-    onMoveBottom="{moveBottom}"
-    donabled="{true}"
-    onDone="{onDone}"
-  />
+  <stackLayout>
+    {#if !isMoving}
+      <AddTextButton
+        list="{today}"
+        level="{todayLevel}"
+        setList="{setToday}"
+        saveList="{saveToday}"
+        mode="bottom"
+      />
+    {/if}
+
+    <Tasks
+      list="{listToday}"
+      onMenu="{onMenuToday}"
+      onOpen="{onOpenToday}"
+      index="{todayIndex}"
+      isMoving="{isMoving}"
+      onClosePanelMove="{onClosePanelMove}"
+      onMoveTop="{moveTop}"
+      onMoveUp="{moveUp}"
+      onMoveDown="{moveDown}"
+      onMoveBottom="{moveBottom}"
+      donabled="{!isMoving}"
+      onDone="{onDone}"
+    />
+  </stackLayout>
 </tabContentItem>
 
 <style>

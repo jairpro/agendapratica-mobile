@@ -31,7 +31,6 @@
     isEditingStore,
     setTitle,
     tabIndexStore,
-    setIsEditing,
   } from '~/stores/global'
 
   import {
@@ -58,6 +57,7 @@
   import { MenuArgs } from '~/utils/types'
   import { confirmDeleteStore } from '~/stores/options'
   import { hideKeyboard, showKeyboard } from '~/utils/os'
+  import AddTextButton from './AddTextButton.svelte';
 
   let isEditing: boolean
   isEditingStore.subscribe(value => isEditing = value)
@@ -89,8 +89,6 @@
   $: {
     textFieldValue = (isEditing && todoIndex > -1) ? todoName : ""
   }
-
-  $: buttonText = isEditing ? 'Modificar' : ACTION_ADICIONAR
 
   let todoGroups = []
 
@@ -292,35 +290,6 @@
     }
   }
 
-  function onButtonTap() {
-    if (textFieldValue === "") return // Prevents users from entering an empty string.
-
-    if (isEditing) {
-      setTodos(modifyListItem({
-        list: todos,
-        index: todoIndex,
-        name: textFieldValue,
-        level: todoLevel,
-      }))
-      saveTodos()
-
-      setIsEditing(false)
-      hideKeyboard()
-    }
-    else {
-      let item = { name: textFieldValue }
-
-      setTodos(addToList({
-        list: todos,
-        item,
-        level: todoLevel
-      }))
-      saveTodos()
-    }
-
-    textFieldValue = "" // Clears the text field so that users can start adding new tasks immediately.
-  }
-
   function openTodoSubdivisions(item?: ListItem) {
     if (item !== undefined) todoIndex = getItemIndex(listTodos, item)
     if (todoIndex < 0) return
@@ -339,25 +308,13 @@
 </script>
 
 <tabContentItem class="tab-todo">
-  <gridLayout
-    columns="*,auto"
-    rows="auto,*"
-  >
-    <!-- Configura o campo de texto e garante que pressionar Return no teclado
-      produz o mesmo resultado que tocar no botão. -->
-    <textField
-      col="0" row="0"
-      bind:text="{textFieldValue}"
-      hint="Digite uma nova tarefa..."
-      editable="{true}"
-      on:returnPress="{onButtonTap}"
-    />
-
-    <button
-      col="1" row="0"
-      text="{buttonText}"
-      on:tap="{onButtonTap}"
-      class="button"
+  <stackLayout>
+    <AddTextButton
+      list="{todos}"
+      level="{todoLevel}"
+      setList="{setTodos}"
+      saveList="{saveTodos}"
+      mode="top"
     />
 
     <Tasks
@@ -368,28 +325,5 @@
       onOpen="{onOpenTodo}"
       isMoving="{false}"
     />
-  </gridLayout>
+  </stackLayout>
 </tabContentItem>
-
-<style>
-  textField {
-    font-family: 'KoHo-Regular';
-		font-size: 20;
-    margin: 8 8 0 8;
-    placeholder-color: #ddd;
-	}
-  .button {
-    font-family: 'KoHo-SemiBold';
-    font-size: 20;
-    background: #3c495e;
-    color: #fff;
-    margin: 8;
-    border-radius: 50%;
-    padding: 0;
-    margin: 4;
-    margin-left: 0;
-    margin-right: 12;
-    height: 50;
-    width: 50;
-  }
-</style>
