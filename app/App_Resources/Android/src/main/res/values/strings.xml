@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Agenda Prática</string>
-    <string name="title_activity_kimera">Agenda Prática</string>
+    <string name="app_name">Migração da Agenda Prática</string>
+    <string name="title_activity_kimera">Migração da Agenda Prática</string>
 </resources>

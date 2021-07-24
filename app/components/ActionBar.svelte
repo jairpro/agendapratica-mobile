@@ -14,13 +14,14 @@
   import { List } from '~/utils/lists'
 
   import ActionItemConfig from './ActionItemConfig.svelte'
-  // import ActionItemOrder from './ActionItemOrder.svelte';
-
-  let tabIndex: number
-  tabIndexStore.subscribe(value => tabIndex = value)
+  import ActionItemOrder from './ActionItemOrder.svelte';
+  import ActionItemExport from "./ActionItemExport.svelte";
 
   let isMoving: boolean
   isMovingStore.subscribe(value => isMoving = value)
+
+  let tabIndex: number
+  tabIndexStore.subscribe(value => tabIndex = value)
 
   let todos: List
   todosStore.subscribe(value => todos = value)
@@ -73,14 +74,14 @@
     />
   {/if}
 
-  <!--{#if tabIndex === 1 && listToday.length>1}
+  {#if !isMoving && tabIndex === 1 && listToday.length>1}
     <ActionItemOrder />
     <ActionItemConfig />
+    <ActionItemExport />
   {:else}
     <ActionItemConfig />
-  {/if}-->
-  <ActionItemConfig />
-
+    <ActionItemExport />
+  {/if}>
 </actionBar>
 
 <style>

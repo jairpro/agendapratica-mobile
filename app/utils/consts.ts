@@ -13,3 +13,4 @@ export const ACTION_DELETE = "❌ Apagar"
 export const ACTION_NOTHING = "Nada"
 
 export const ACTION_CONFIG = "⚙ Configurações"
+export const ACTION_EXPORT_TO_SUCCAPP = "💾 Migrar dados..."
