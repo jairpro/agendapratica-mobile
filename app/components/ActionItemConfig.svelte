@@ -5,6 +5,9 @@
   import { loadOptions } from "~/stores/options";
   import { ACTION_CONFIG } from "~/utils/consts";
 
+  export let className = "menu"
+  export let position = "popup"
+
   async function launchOptions() {
     await showModal({
       page: Options,
@@ -19,7 +22,7 @@
 <actionItem
   on:tap="{launchOptions}"
   android.systemIcon="ic_menu_view"
-  android.position="popup"
-  class="menu"
+  android.position="{position}"
+  class="{className}"
   text="{ACTION_CONFIG}"
 />
