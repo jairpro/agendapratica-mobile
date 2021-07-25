@@ -1,15 +1,15 @@
 <script>
   import { openApp } from 'nativescript-open-app'
-  // import { setMigrated } from '~/stores/migrated'
+  import { setMigrated } from '~/stores/migrated'
   import { exit } from 'nativescript-exit'
 
   function handleNewVersion() {
     openApp('com.sistemanuvem.agendapratica')
   }
 
-  /*function handleAindaNao(e) {
+  function handleAindaNao(e) {
     setMigrated(false)
-  }*/
+  }
 
   function handleExit(e) {
     exit()
@@ -51,10 +51,10 @@
       on:tap="{handleExit}"
     />
 
-    <!--button class="ainda-nao"
+    <button class="ainda-nao"
       text="Ainda não"
       on:tap="{handleAindaNao}"
-    /-->
+    />
   </flexboxLayout>
 </scrollView>
 
@@ -96,14 +96,16 @@
     width: 100%;
     border-radius: 12px;
   }
-  /*.ainda-nao {
+
+  .ainda-nao {
     color: #fff;
     background: #700;
     font-size: 18px;
     padding: 20px 40px;
     width: 100%;
     border-radius: 12px;
-  }*/
+  }
+
   .exit {
     color: #fff;
     background: #3c495e;
