@@ -1,7 +1,7 @@
-import { donesStore, setDones } from '~/stores/dones';
-import { confirmDeleteStore, setConfirmDelete } from '~/stores/options';
-import { setToday, todayStore } from '~/stores/today';
-import { setTodos, todosStore } from '~/stores/todo';
+import { donesStore } from '~/stores/dones';
+import { confirmDeleteStore } from '~/stores/options';
+import { todayStore } from '~/stores/today';
+import { todosStore } from '~/stores/todo';
 import { List } from './lists';
 
 let todo: List

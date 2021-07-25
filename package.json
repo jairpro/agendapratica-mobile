@@ -12,6 +12,8 @@
     "@nativescript/core": "~7.0.0",
     "@nativescript/theme": "~2.3.3",
     "@nativescript/webpack": "3.0.0",
+    "nativescript-exit": "^1.0.1",
+    "nativescript-open-app": "^0.3.0",
     "svelte-native": "~0.9.1",
     "tns-core-modules": "^6.5.27"
   },

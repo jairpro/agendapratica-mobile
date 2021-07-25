@@ -15,7 +15,6 @@
 
   import ActionItemConfig from './ActionItemConfig.svelte'
   import ActionItemOrder from './ActionItemOrder.svelte';
-  import ActionItemExport from "./ActionItemExport.svelte";
 
   let isMoving: boolean
   isMovingStore.subscribe(value => isMoving = value)
@@ -77,10 +76,8 @@
   {#if !isMoving && tabIndex === 1 && listToday.length>1}
     <ActionItemOrder />
     <ActionItemConfig />
-    <ActionItemExport />
   {:else}
     <ActionItemConfig />
-    <ActionItemExport />
   {/if}>
 </actionBar>
 

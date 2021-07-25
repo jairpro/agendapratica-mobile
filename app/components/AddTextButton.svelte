@@ -60,8 +60,13 @@
     font-family: 'KoHo-Regular';
 		font-size: 20;
     margin: 8 8 0 8;
-    placeholder-color: #ddd;
+    /*placeholder-color: #ddd;*/
+    /*placeholder-color: #a7a7af;*/
 	}
+  textField::placeholder {
+    /*color: #ddd;*/
+    color: #a7a7af;
+  }
   .button {
     font-family: 'KoHo-SemiBold';
     font-size: 20;

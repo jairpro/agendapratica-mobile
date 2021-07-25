@@ -2821,6 +2821,11 @@ nanomatch@^1.2.9:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
+nativescript-exit@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/nativescript-exit/-/nativescript-exit-1.0.1.tgz#6b48a5775d5d5e9b4a2f357b5e48dd1a3f681ffa"
+  integrity sha512-sPWicXDHqrMDMp34XBT83I6t5boTyJdKiyJzS0Az8+47pC0B42u1rBNEFXuqJIw2tLsIMq5LJBwMWW2Ilki8Qw==
+
 nativescript-hook@0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/nativescript-hook/-/nativescript-hook-0.2.5.tgz#ea85179ada2d619dcadc9dc32ec45bb5a3c6713e"
@@ -2828,6 +2833,11 @@ nativescript-hook@0.2.5:
   dependencies:
     glob "^6.0.1"
     mkdirp "^0.5.1"
+
+nativescript-open-app@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/nativescript-open-app/-/nativescript-open-app-0.3.0.tgz#f049d8c8ce55640855dc4d0b04b342b4d6149394"
+  integrity sha512-bFZalUCRGV82fLHdArLlTDK1HAGJz2noF/kbI7ya1F8t548g9v6QxJf3f1wIFv2Z6xxz/gJhS1QuSMAtcM1lMA==
 
 nativescript-worker-loader@~0.12.0:
   version "0.12.1"
