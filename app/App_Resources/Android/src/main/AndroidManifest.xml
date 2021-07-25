@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="__PACKAGE__"
 	android:versionCode="2"
-	android:versionName="2.0">
+	android:versionName="2.0.1">
 
 	<supports-screens
 		android:smallScreens="true"
@@ -35,7 +35,7 @@
 			</intent-filter>
 
 			<intent-filter>
-				<action android:name="com.sistemanuvem.agendapratica.SEND" />
+				<action android:name="com.sistemanuvem.agendapratica.SEND_MIGRATION" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<data android:mimeType="text/plain" />
 			</intent-filter>

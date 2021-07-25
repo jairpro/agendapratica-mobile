@@ -1,7 +1,7 @@
 import { donesStore, setDones } from '~/stores/dones';
 import { confirmDeleteStore, setConfirmDelete } from '~/stores/options';
 import { setToday, todayStore } from '~/stores/today';
-import { setTodos, todosStore } from '~/stores/todo';
+import { saveTodos, setTodos, todosStore } from '~/stores/todo';
 import { List } from './lists';
 
 let todo: List
@@ -32,8 +32,10 @@ export function getContent() {
 
 export function setData(content: string) {
   const data = JSON.parse(content)
-  setTodos(data.todo)
+  //setTodos(data.todo as List)
+  todosStore.set(data.todo)
+  saveTodos()
   setToday(data.today)
   setDones(data.dones)
-  setConfirmDelete(data.confirmDelete)
+  //setConfirmDelete(data.confirmDelete)
 }
