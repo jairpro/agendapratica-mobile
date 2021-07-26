@@ -14,13 +14,15 @@
   import { List } from '~/utils/lists'
 
   import ActionItemConfig from './ActionItemConfig.svelte'
-  // import ActionItemOrder from './ActionItemOrder.svelte';
-
-  let tabIndex: number
-  tabIndexStore.subscribe(value => tabIndex = value)
+  import ActionItemOrder from './ActionItemOrder.svelte';
+  import ActionItemExportToClipboard from "./ActionItemExportToClipboard.svelte"
+  import ActionItemImportFromClipboard from "./ActionItemImportFromClipboard.svelte"
 
   let isMoving: boolean
   isMovingStore.subscribe(value => isMoving = value)
+
+  let tabIndex: number
+  tabIndexStore.subscribe(value => tabIndex = value)
 
   let todos: List
   todosStore.subscribe(value => todos = value)
@@ -73,14 +75,16 @@
     />
   {/if}
 
-  <!--{#if tabIndex === 1 && listToday.length>1}
+  {#if !isMoving && tabIndex === 1 && listToday.length>1}
     <ActionItemOrder />
     <ActionItemConfig />
+    <ActionItemExportToClipboard />
+    <ActionItemImportFromClipboard />
   {:else}
     <ActionItemConfig />
-  {/if}-->
-  <ActionItemConfig />
-
+    <ActionItemExportToClipboard />
+    <ActionItemImportFromClipboard />
+  {/if}
 </actionBar>
 
 <style>

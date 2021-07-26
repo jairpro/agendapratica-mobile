@@ -14,7 +14,8 @@ export function StorageSetList(key: string, list: List) {
 }
 
 export function StorageGetBoolean(key: string, defaultValue: boolean): boolean {
-  return appSettings.getBoolean(key, defaultValue)
+  const value = appSettings.getBoolean(key, defaultValue)
+  return typeof value === 'boolean' ? value : defaultValue
 }
 
 export function StorageSetBoolean(key: string, value: boolean) {
