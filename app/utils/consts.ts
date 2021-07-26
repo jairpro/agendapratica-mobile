@@ -13,3 +13,5 @@ export const ACTION_DELETE = "❌ Apagar"
 export const ACTION_NOTHING = "Nada"
 
 export const ACTION_CONFIG = "⚙ Configurações"
+export const ACTION_EXPORT_TO_CLIPBOARD = "📄 Exportar para àrea de transferência"
+export const ACTION_IMPORT_FROM_CLIPBOARD = "📋 Importar da àrea de transferência"

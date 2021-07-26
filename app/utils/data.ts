@@ -30,12 +30,48 @@ export function getContent() {
   return JSON.stringify(getData())
 }
 
+export function isValidContent(content: string) {
+  try {
+    const data = JSON.parse(content)
+    if (typeof data !== "object") return false
+
+    if (typeof data.todo !== "object" || !(data.todo instanceof Array)) return false
+    if (typeof data.today !== "object" || !(data.today instanceof Array)) return false
+    if (typeof data.dones !== "object" || !(data.dones instanceof Array)) return false
+    if (typeof data.options !== "object") return false
+
+    return true
+  }
+  catch (error) {
+    console.log('setData error:', error.message)
+    return false
+  }
+}
+
 export function setData(content: string) {
-  const data = JSON.parse(content)
-  //setTodos(data.todo as List)
-  todosStore.set(data.todo)
-  saveTodos()
-  setToday(data.today)
-  setDones(data.dones)
-  //setConfirmDelete(data.confirmDelete)
+  try {
+    // console.log("JSON.parse...")
+    const data = JSON.parse(content)
+
+    // console.log("todoStore.set...")
+    //setTodos(data.todo as List)
+    todosStore.set(data.todo)
+
+    // console.log("saveTodos...")
+    saveTodos()
+
+    // console.log('setToday...')
+    setToday(data.today)
+
+    // console.log('setDones...')
+    setDones(data.dones)
+
+    //console.log('setConfirmDelete...')
+    //setConfirmDelete(data.confirmDelete)
+
+    // console.log('setData ok!')
+  }
+  catch (error) {
+    console.log('setData error:', error.message)
+  }
 }

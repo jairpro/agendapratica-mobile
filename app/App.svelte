@@ -1,17 +1,17 @@
 <script lang="typescript">
-  import * as application from 'tns-core-modules/application';
-  import { Utils } from "@nativescript/core";
+  // import * as application from 'tns-core-modules/application';
+  // import { Utils } from "@nativescript/core";
 
   import Home from '~/pages/Home.svelte'
 
   import { loadOptions } from "./stores/options"
   import { backEvent } from './utils/backEvent'
-  import { setData } from './utils/data';
-  import { StorageGetBoolean, StorageSetBoolean } from './utils/storage';
+  // import { setData } from './utils/data';
+  // import { StorageGetBoolean, StorageSetBoolean } from './utils/storage';
 
-  const STORE_MIGRATED = 'migrated'
+  // const STORE_MIGRATED = 'migrated'
 
-  async function sendRequestMigration(): Promise<boolean> {
+  /*async function sendRequestMigration(): Promise<boolean> {
     try {
       const context = Utils.android.getApplicationContext()
 
@@ -29,7 +29,7 @@
     }
 
     return true
-  }
+  }*/
 
   /* function sendMigrated(): boolean {
     try {
@@ -51,7 +51,7 @@
     return true
   }*/
 
-  function receiveIntents() {
+  /*function receiveIntents() {
     const newString = (arg: any) => (new String(arg).valueOf())
 
     application.android.on(
@@ -111,12 +111,12 @@
     }
     console.log("migrou")
     return null
-  }
+  }*/
 
   loadOptions()
   backEvent()
-  receiveIntents()
-  verifyMigration()
+  //receiveIntents()
+  //verifyMigration()
 </script>
 
 <Home />

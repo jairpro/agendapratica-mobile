@@ -15,6 +15,8 @@
 
   import ActionItemConfig from './ActionItemConfig.svelte'
   import ActionItemOrder from './ActionItemOrder.svelte';
+  import ActionItemExportToClipboard from "./ActionItemExportToClipboard.svelte"
+  import ActionItemImportFromClipboard from "./ActionItemImportFromClipboard.svelte"
 
   let isMoving: boolean
   isMovingStore.subscribe(value => isMoving = value)
@@ -76,8 +78,12 @@
   {#if !isMoving && tabIndex === 1 && listToday.length>1}
     <ActionItemOrder />
     <ActionItemConfig />
+    <ActionItemExportToClipboard />
+    <ActionItemImportFromClipboard />
   {:else}
     <ActionItemConfig />
+    <ActionItemExportToClipboard />
+    <ActionItemImportFromClipboard />
   {/if}
 </actionBar>
 
