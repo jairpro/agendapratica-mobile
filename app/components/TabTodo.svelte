@@ -1,63 +1,62 @@
 <script lang="ts">
-  import { action } from '@nativescript/core/ui/dialogs'
-
-  import {
-    ACTION_ADICIONAR,
-    ACTION_CONCLUDE,
-    ACTION_DELETE,
-    ACTION_EDIT,
-    ACTION_JOIN,
-    ACTION_MOVE_OUT,
-    ACTION_MOVE_TO,
-    ACTION_NOTHING,
-    ACTION_SUBDIVID,
-    ACTION_TODAY
-  } from '~/utils/consts'
-
-  import {
-    List,
-    modifyListItem,
-    moveTaskToList,
-    modifyTaskFromList,
-    confirmDeleteTask,
-    ListItem,
-    removeFromList,
-    getItemIndex,
-    addToList,
-    reactList,
-  } from '~/utils/lists'
+  import { action } from '@nativescript/core/ui/dialogs';
+  import { showModal } from 'svelte-native';
+  import { donesStore,setDones } from '~/stores/dones';
 
   import {
     isEditingStore,
     setTitle,
-    tabIndexStore,
-  } from '~/stores/global'
+    tabIndexStore
+  } from '~/stores/global';
+
+  import { confirmDeleteStore } from '~/stores/options';
+  import { setToday,todayStore } from '~/stores/today';
 
   import {
-    listTodosStore,
-    todoLevelStore,
-    todosStore,
-    todoIndexStore,
-    setTodos,
+    incrementTodoLevel,
+    incrementTodoLevelsItem,
+    listTodosStore,pushTodoLevels,
+    removeSubdivisionsFromTodos,
+    saveTodos,
+    setListTodos,
     setTodoIndex,
     setTodoLevel,
-    incrementTodoLevel,
-    pushTodoLevels,
-    incrementTodoLevelsItem,
-    saveTodos,
-    removeSubdivisionsFromTodos,
-    setListTodos,
-  } from '~/stores/todo'
+    setTodos,
+    todoIndexStore,
+    todoLevelStore,
+    todosStore
+  } from '~/stores/todo';
 
-  import Tasks from './Tasks.svelte'
+  import {
+    ACTION_CONCLUDE,ACTION_DELETE,
+    ACTION_EDIT,
+    ACTION_JOIN,
+    ACTION_MOVE_OUT,
+    ACTION_MOVE_TO,
+    ACTION_NOTHING,ACTION_NOTIFY,ACTION_SUBDIVID,
+    ACTION_TODAY
+  } from '~/utils/consts';
 
-  import { todayStore, setToday } from '~/stores/today'
-  import { donesStore, setDones } from '~/stores/dones'
-  import { goBack } from '~/utils/goBack'
-  import { MenuArgs } from '~/utils/types'
-  import { confirmDeleteStore } from '~/stores/options'
-  import { hideKeyboard, showKeyboard } from '~/utils/os'
+  import { goBack } from '~/utils/goBack';
+
+  import {
+    addToList,
+    confirmDeleteTask,
+    getItemIndex,
+    List,
+    ListItem,
+    modifyListItem,
+    modifyTaskFromList,
+    moveTaskToList,
+    reactList,
+    removeFromList
+  } from '~/utils/lists';
+
+  import { hideKeyboard, showKeyboard } from '~/utils/os';
+  import SetTaskNotification from '~/dialogs/SetTaskNotification.svelte';
+  import { MenuArgs } from '~/utils/types';
   import AddTextButton from './AddTextButton.svelte';
+  import Tasks from './Tasks.svelte';
 
   let isEditing: boolean
   isEditingStore.subscribe(value => isEditing = value)
@@ -205,6 +204,7 @@
     if (!listTodos[todoIndex].subdivisions) {
       menu.push(ACTION_MOVE_TO)
     }
+    menu.push(ACTION_NOTIFY)
     menu.push(ACTION_DELETE)
 
     let result = await action(item.name, ACTION_NOTHING, menu)
@@ -239,6 +239,24 @@
             saveTodos()
           },
           onGoBack: () => goBack(),
+        })
+        break
+
+      case ACTION_NOTIFY:
+        showModal({
+          page: SetTaskNotification,
+          fullscreen: true,
+          android: {
+            cancelable: true,
+          },
+          //stretched: true,
+          animated: true,
+          props: {
+            //list: todos,
+            //level: todoLevel,
+            //index: todoIndex,
+            taskName: item.name,
+          }
         })
         break
 
