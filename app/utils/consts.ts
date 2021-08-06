@@ -2,6 +2,8 @@ export const ACTION_ADICIONAR = "+"
 
 export const ACTION_CONCLUDE = "👍 Pronta"
 export const ACTION_TODAY = "☀ Fazer hoje!"
+//export const ACTION_NOTIFY = "🔔 Lembrar"
+export const ACTION_NOTIFY = "🦆 Lembrar"
 export const ACTION_ORDER = "↕ Ordem"
 export const ACTION_MOVE_TO = "⤴ Mover para..."
 export const ACTION_MOVE_OUT = "⤴ Fora"
