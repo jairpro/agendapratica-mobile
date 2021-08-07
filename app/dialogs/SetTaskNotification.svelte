@@ -26,6 +26,8 @@
   $: dateTime = new Date(getYear(date), getMonth(date), getDate(date), getHours(time), getMinutes(time))
 
   export let taskName: string
+  export let taskId: string = undefined
+  export let onCreateId: () => string = null
 
   function handleToSchedule() {
     if (!isAfter(dateTime, new Date())) {
@@ -36,8 +38,8 @@
       })
       return
     }
-    const title = taskName
-    // const subtitle = 'Teste'
+    const title = "Tarefa para hoje:"
+    const subtitle = taskName
     // const ticker = 'Teste'
 
     //const at = dateTime
@@ -73,25 +75,34 @@
       },
     ]
 
-    LocalNotifications.schedule([
+    let task_id: string = taskId
+    if (!task_id && onCreateId) {
+      task_id = onCreateId()
+    }
+
+    const payload = { task_id }
+
+    const ids = LocalNotifications.schedule([
       {
-        // id: ,
+        // id,
         title,
-        // subtitle,
+        subtitle,
+        body: subtitle,
         // ticker,
         at,
         // sound,
         // intervale,
         // ongoing,
         // forceShowWhenInForeground,
-        //actions,
+        actions,
         // notificationLed,
+        payload,
       }
     ])
     .then(() => {
       alert({
         title: "Notificação agendada",
-        message: title,
+        message: taskName,
         okButtonText: "OK"
       });
       closeModal(true)

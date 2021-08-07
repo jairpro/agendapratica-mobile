@@ -57,6 +57,7 @@
   import { MenuArgs } from '~/utils/types';
   import AddTextButton from './AddTextButton.svelte';
   import Tasks from './Tasks.svelte';
+import { updateListItemWithId } from '~/utils/taskId';
 
   let isEditing: boolean
   isEditingStore.subscribe(value => isEditing = value)
@@ -246,16 +247,24 @@
         showModal({
           page: SetTaskNotification,
           fullscreen: true,
-          android: {
-            cancelable: true,
-          },
+          //android: {
+          //  cancelable: true,
+          //},
           //stretched: true,
+
           animated: true,
           props: {
-            //list: todos,
-            //level: todoLevel,
-            //index: todoIndex,
             taskName: item.name,
+            taskId: item.id,
+            onCreateId: () => {
+              return updateListItemWithId({
+                list: todos,
+                level: todoLevel,
+                index: todoIndex,
+                name: item.name,
+                onModify: after => (setTodos(after), saveTodos()),
+              })
+            }
           }
         })
         break

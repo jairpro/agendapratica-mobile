@@ -8,12 +8,14 @@ import { alert } from '@nativescript/core/ui/dialogs';
   LocalNotifications.addOnMessageReceivedCallback((notification) => {
     alert({
       title: '🦆 Lembrete!',
-      message: notification.title,
+      message: notification.body,
       okButtonText: 'VALEU!'
     })
-	  console.log('ID: ' + notification.id)
-	  console.log('Title: ' + notification.title)
-	  console.log('Body: ' + notification.body)
+	  console.log('ID: ', notification.id)
+	  console.log('Title: ', notification.title)
+	  console.log('Body:', notification.body)
+	  console.log('Payload:', JSON.stringify(notification.payload))
+	  console.log('Response: ', notification.response)
   }).then(() => {
 	  console.log('Listener added');
   })

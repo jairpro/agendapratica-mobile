@@ -3,6 +3,7 @@ import { array_move } from "./arrays"
 import { StorageSetList } from './storage'
 
 export type ListItem = {
+  id?: string
   name: string
   subdivisions?: List
 }
@@ -29,6 +30,7 @@ type ModifyListItemData = {
   index: number
   name: string
   level?: number
+  id?: string
 }
 
 type RemoveFromListData = {
@@ -56,7 +58,7 @@ type MoveTaskToListData = {
   onGoBack: () => void
 }
 
-type ModifyTaskFromListData = {
+export type ModifyTaskFromListData = {
   list: List
   level: number
   index: number
@@ -97,13 +99,15 @@ export function appendToList(data: AppendToListData): List {
 }
 
 export const modifyListItem = (data: ModifyListItemData) => {
-  const { list, index, name, level } = data
+  const { list, index, name, level, id } = data
 
   if (level > -1) {
     list[level].subdivisions[index].name = name
+    list[level].subdivisions[index].id = id
   }
   else {
     list[index].name = name
+    list[index].id = id
   }
 
   return JSON.parse(JSON.stringify(list))
